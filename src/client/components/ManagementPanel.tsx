@@ -19,7 +19,7 @@ export interface ManagementPanelProps {
 interface UnionFormState {
   title: string
   members: string[]
-  preset: 'workspace-write' | 'workspace-write-all' | 'danger-full-access'
+  preset: 'workspace-write' | 'danger-full-access'
   manualPath: string
   busy: boolean
   notice: string
@@ -162,9 +162,8 @@ function UnionEditor(props: { union: Union; onUpdate: (u: Union) => void; onDele
         h('label', { className: css.fieldLabel }, tt('overlay.preset')),
         h('select', {
           className: css.select, value: preset,
-          onChange: (ev: { target: { value: string } }) => setPreset(ev.target.value as 'workspace-write' | 'workspace-write-all' | 'danger-full-access'),
+          onChange: (ev: { target: { value: string } }) => setPreset(ev.target.value as 'workspace-write' | 'danger-full-access'),
         },
-        h('option', { value: 'workspace-write-all' }, tt('settings.form.preset.writeAll')),
         h('option', { value: 'workspace-write' }, tt('settings.form.preset.write')),
         h('option', { value: 'danger-full-access' }, tt('settings.form.preset.full'))),
       ),
@@ -327,9 +326,8 @@ export function ManagementPanel(props: ManagementPanelProps): ReturnType<typeof 
           h('label', { className: css.fieldLabel }, tt('overlay.preset')),
           h('select', {
             className: css.select, value: form.preset,
-            onChange: (ev: { target: { value: string } }) => patchForm({ preset: ev.target.value as 'workspace-write' | 'workspace-write-all' | 'danger-full-access' }),
+            onChange: (ev: { target: { value: string } }) => patchForm({ preset: ev.target.value as 'workspace-write' | 'danger-full-access' }),
           },
-          h('option', { value: 'workspace-write-all' }, tt('settings.form.preset.writeAll')),
           h('option', { value: 'workspace-write' }, tt('settings.form.preset.write')),
           h('option', { value: 'danger-full-access' }, tt('settings.form.preset.full'))),
         ),

@@ -13,7 +13,7 @@ export interface Union {
   /** Member directory paths; index 0 is the primary. De-duplicated, no containment pairs, >= 2. */
   members: string[]
   /** Sandbox preset applied to every session marked with this union. */
-  preset: 'workspace-write' | 'workspace-write-all' | 'danger-full-access'
+  preset: 'workspace-write' | 'danger-full-access'
 }
 
 /** The persisted store: unions plus per-session marks. */

@@ -27,7 +27,7 @@ export function SettingsSection(_props: SettingsSectionProps): ReturnType<typeof
     const [loaded, setLoaded] = useState(false)
     const [title, setTitle] = useState('')
     const [members, setMembers] = useState<string[]>([])
-    const [preset, setPreset] = useState<'workspace-write' | 'workspace-write-all' | 'danger-full-access'>('workspace-write')
+    const [preset, setPreset] = useState<'workspace-write' | 'danger-full-access'>('workspace-write')
     const [manualPath, setManualPath] = useState('')
     const [notice, setNotice] = useState('')
     const [noticeErr, setNoticeErr] = useState(false)
@@ -141,7 +141,7 @@ export function SettingsSection(_props: SettingsSectionProps): ReturnType<typeof
         if (!n) return
         await persist(unions.map((x) => (x.id === u.id ? {...x, title: n} : x)))
     }
-    const setUnionPreset = async (u: Union, v: 'workspace-write' | 'workspace-write-all' | 'danger-full-access'): Promise<void> => {
+    const setUnionPreset = async (u: Union, v: 'workspace-write' | 'danger-full-access'): Promise<void> => {
         await persist(unions.map((x) => (x.id === u.id ? {...x, preset: v} : x)))
     }
 
@@ -236,9 +236,8 @@ export function SettingsSection(_props: SettingsSectionProps): ReturnType<typeof
                                 className: css.select, value: preset,
                                 onChange: (ev: {
                                     target: { value: string }
-                                }) => setPreset(ev.target.value as 'workspace-write' | 'workspace-write-all' | 'danger-full-access'),
+                                }) => setPreset(ev.target.value as 'workspace-write' | 'danger-full-access'),
                             },
-                            h('option', {value: 'workspace-write-all'}, tt('settings.form.preset.writeAll')),
                             h('option', {value: 'workspace-write'}, tt('settings.form.preset.write')),
                             h('option', {value: 'danger-full-access'}, tt('settings.form.preset.full'))),
                     ),
@@ -279,9 +278,8 @@ export function SettingsSection(_props: SettingsSectionProps): ReturnType<typeof
                                 className: css.select, value: u.preset,
                                 onChange: (ev: {
                                     target: { value: string }
-                                }) => void setUnionPreset(u, ev.target.value as 'workspace-write' | 'workspace-write-all' | 'danger-full-access'),
+                                }) => void setUnionPreset(u, ev.target.value as 'workspace-write' | 'danger-full-access'),
                             },
-                            h('option', {value: 'workspace-write-all'}, 'workspace-write-all'),
                             h('option', {value: 'workspace-write'}, 'workspace-write'),
                             h('option', {value: 'danger-full-access'}, 'danger-full-access')),
                         h('button', {

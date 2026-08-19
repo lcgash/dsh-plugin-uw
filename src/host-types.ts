@@ -6,15 +6,19 @@
 
 /** Minimal FileSystem interface. */
 export interface FileSystem {
-  resolve(path: string, opts?: { cwd?: string }): Promise<FsTarget>
+  resolve(path: string, opts?: { cwd?: string; signal?: AbortSignal }): Promise<FsTarget>
+  processPath(target: FsTarget): string
+  contains(parent: FsTarget, child: FsTarget): boolean
   readText(target: FsTarget, signal?: AbortSignal): Promise<string>
-  writeText(target: FsTarget, content: string, expected?: unknown, signal?: AbortSignal, sandboxPolicy?: { mode: string; workspaceRoot: string }): Promise<unknown>
+  writeText(target: FsTarget, content: string, expected?: unknown, signal?: AbortSignal, sandboxPolicy?: { mode: string; workspaceRoot: string }): Promise<FsWriteOutcome>
+  editText(target: FsTarget, edit: FsEditRequest, expected?: unknown, signal?: AbortSignal, sandboxPolicy?: { mode: string; workspaceRoot: string }): Promise<FsEditOutcome>
   listDir(target: FsTarget, signal?: AbortSignal): Promise<FsDirEntry[]>
   stat(target: FsTarget, signal?: AbortSignal): Promise<FsInfo | undefined>
 }
 
 export interface FsTarget {
-  readonly path: string
+  readonly targetKey: string
+  readonly displayPath: string
 }
 
 export interface FsDirEntry {
@@ -26,6 +30,26 @@ export interface FsDirEntry {
 export interface FsInfo {
   type: 'file' | 'directory' | 'symlink' | 'other'
   size?: number
+}
+
+export interface FsWriteOutcome {
+  operation: 'create' | 'update'
+  version: string
+  before: string | null
+  after: string
+}
+
+export interface FsEditRequest {
+  oldString: string
+  newString: string
+  replaceAll: boolean
+}
+
+export interface FsEditOutcome {
+  operation: 'create' | 'update'
+  version: string
+  before: string
+  after: string
 }
 
 /** Minimal ShellExecutor interface. */

@@ -25,7 +25,7 @@ interface CreateState {
   mode: 'union' | 'plain'
   name: string
   members: string[]
-  preset: 'workspace-write' | 'workspace-write-all' | 'danger-full-access'
+  preset: 'workspace-write' | 'danger-full-access'
   manualPath: string
   plainPath: string
   busy: boolean
@@ -222,7 +222,6 @@ export function Overlay(_props: OverlayProps): ReturnType<typeof h> | null {
         h('div', { className: css.desc },
           tt('overlay.permissionDesc', { preset: memberView.preset })
           + (memberView.preset === 'danger-full-access' ? tt('overlay.permissionDescFull')
-            : memberView.preset === 'workspace-write-all' ? tt('overlay.permissionDescWriteAll')
             : tt('overlay.permissionDescWrite'))),
         h('div', { className: css.card, style: { gap: 8 } },
           memberView.members.map((m, i) => h('div', { key: i, className: css.row },
@@ -254,9 +253,8 @@ export function Overlay(_props: OverlayProps): ReturnType<typeof h> | null {
       h('label', { className: css.fieldLabel }, tt('overlay.preset')),
       h('select', {
         className: css.select, value: create.preset,
-        onChange: (ev: { target: { value: string } }) => patch({ preset: ev.target.value as 'workspace-write' | 'workspace-write-all' | 'danger-full-access' }),
+        onChange: (ev: { target: { value: string } }) => patch({ preset: ev.target.value as 'workspace-write' | 'danger-full-access' }),
       },
-      h('option', { value: 'workspace-write-all' }, tt('settings.form.preset.writeAll')),
       h('option', { value: 'workspace-write' }, tt('settings.form.preset.write')),
       h('option', { value: 'danger-full-access' }, tt('settings.form.preset.full'))),
     ),

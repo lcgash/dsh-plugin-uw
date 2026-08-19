@@ -72,28 +72,8 @@ async function resolveUnion(deps: UnionRoutesDeps, res: ServerResponse, body: Re
 }
 
 /**
- * Find the longest common ancestor directory of multiple absolute paths.
- * Returns the first member path when the common ancestor is root (/) or
- * there is only one path.
+ * Build the route table.
  */
-function commonAncestor(paths: string[]): string {
-  if (paths.length <= 1) return paths[0] ?? '/'
-  const segments = paths.map((p) => p.split('/').filter(Boolean))
-  const minLen = Math.min(...segments.map((s) => s.length))
-  let common = 0
-  for (let i = 0; i < minLen; i++) {
-    const val = segments[0][i]
-    if (val !== undefined && segments.every((s) => s[i] === val)) {
-      common = i + 1
-    } else {
-      break
-    }
-  }
-  if (common === 0) return paths[0] // no common ancestor -> fall back to primary
-  return '/' + segments[0].slice(0, common).join('/')
-}
-
-/** Build the route table. */
 export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
   const { store, fs, workspaceRegistry } = deps
 
@@ -135,14 +115,10 @@ export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
           // already exists, reuse it.
           let ws = workspaceRegistry.list().find((w) => w.title === union.title)
           if (ws === undefined) {
-            // Choose workspace root according to the preset:
-            // - workspace-write-all: common ancestor of all members so every
-            //   member dir is a subdirectory and writable under workspace-write mode.
-            // - workspace-write / danger: primary member path.
-            const root = union.preset === 'workspace-write-all'
-              ? commonAncestor(union.members)
-              : union.members[0]
-            ws = await workspaceRegistry.create(root, union.title)
+            // Always use the primary member as the workspace root. Never use a
+            // common ancestor — that would expose sibling directories outside
+            // the union members to the agent.
+            ws = await workspaceRegistry.create(union.members[0], union.title)
             if (ws.title !== union.title) await ws.setTitle(union.title)
           }
           // Move the session: detach from its original workspace (if any) and
@@ -159,6 +135,8 @@ export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
             }
             // Attach to the union workspace
             try { await ws.attachSession(sessionId as never) } catch { /* ignore if already attached or cwd mismatch */ }
+            // Mark the session so the client-side UI can show the file panel
+            store.mark(sessionId, union.id)
           }
           writeJson(res, 200, { ok: true, workspaceId: ws.id })
         } catch (error) {

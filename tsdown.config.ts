@@ -18,5 +18,10 @@ export default clientBundle('dsh-union-workspace', ['src/index.ts'], {
     '@deepseek-ai/dsh-host-webserver',
     '@deepseek-ai/dsh-system-prompt',
     '@deepseek-ai/dsh-workspace',
+    '@deepseek-ai/dsh-tools',
+    '@deepseek-ai/dsh-llm',
+    '@deepseek-ai/dsh-session',
+    '@deepseek-ai/dsh-scope',
+    '@deepseek-ai/dsh-timeout',
   ],
 })
