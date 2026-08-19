@@ -3,6 +3,7 @@
 > Union Workspaces plugin for DSH — Merge multiple directories into one session.
 
 [![GitHub](https://img.shields.io/badge/GitHub-lcgash/dsh--plugin--uw-blue?style=flat-square&logo=github)](https://github.com/lcgash/dsh-plugin-uw)
+[![npm](https://img.shields.io/npm/v/dsh-union-workspace?style=flat-square&logo=npm)](https://www.npmjs.com/package/dsh-union-workspace)
 
 ---
 
@@ -36,6 +37,18 @@
 - **Member directory tools** — The plugin registers `uw_read`, `uw_write`, and `uw_edit` tools for reading/writing files in member directories, bypassing the sandbox single-root restriction. Under `workspace-write` only the primary directory is writable; `danger-full-access` allows writing to all members.
 
 ## Installation
+
+### From npm
+
+```bash
+# Install globally
+npm install -g dsh-union-workspace
+
+# Or install into a DSH profile (replace <name> with your profile name)
+dsh plugin --profile <name> add dsh-union-workspace
+```
+
+### From source
 
 ```bash
 # Clone the repo

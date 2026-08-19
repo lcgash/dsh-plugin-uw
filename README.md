@@ -3,6 +3,7 @@
 > 联合工作区插件 — 将多个目录合并到一个会话中，让 AI 助手同时访问所有成员目录。
 
 [![GitHub](https://img.shields.io/badge/GitHub-lcgash/dsh--plugin--uw-blue?style=flat-square&logo=github)](https://github.com/lcgash/dsh-plugin-uw)
+[![npm](https://img.shields.io/npm/v/dsh-union-workspace?style=flat-square&logo=npm)](https://www.npmjs.com/package/dsh-union-workspace)
 
 ---
 
@@ -36,6 +37,18 @@
 - **成员目录工具** — 注册了 `uw_read`、`uw_write`、`uw_edit` 三个工具，AI 助手可直接通过成员目录路径读写文件，不受沙箱限制。`workspace-write` 预设下只有主目录可写，`danger-full-access` 下所有成员目录可写。
 
 ## 安装
+
+### 从 npm 安装
+
+```bash
+# 全局安装
+npm install -g dsh-union-workspace
+
+# 或安装到 DSH profile（将 <name> 替换为你的 profile 名称）
+dsh plugin --profile <name> add dsh-union-workspace
+```
+
+### 从源码安装
 
 ```bash
 # 克隆仓库

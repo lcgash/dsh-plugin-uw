@@ -1,0 +1,39 @@
+version: "1.0"
+name: release
+displayName: release
+stages:
+- name: 构建
+  displayName: 构建
+  strategy: naturally
+  trigger: auto
+  steps:
+  - step: build@nodejs
+    name: ""
+    displayName: Nodejs 构建
+    nodeVersion: 25.4.0
+    commands:
+    - echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+    - npm install
+    - npm run build
+    - npm publish
+    artifacts: []
+    notify: []
+    strategy:
+      retry: "0"
+      resource:
+        cpu: "2"
+        memory: "4"
+triggers:
+  trigger: auto
+  push:
+    tags:
+      prefix:
+      - v
+      precise: []
+      include: []
+notify: []
+strategy:
+  blocking: true
+variables:
+  global:
+  - NPM_TOKEN
