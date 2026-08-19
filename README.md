@@ -1,75 +1,91 @@
-# dsh-union-workspace
+# dsh-plugin-uw
 
-Union workspaces for the DSH web GUI. Merge multiple directories into one
-session (primary + members), persist them under `~/.dsh/union-workspaces.json`,
-apply a permission preset per union, browse member files in a right-side panel,
-and manage everything from a settings section and the `/uw` command.
+> 联合工作区插件 — 将多个目录合并到一个会话中，让 AI 助手同时访问所有成员目录。
 
-## Features
+[![GitHub](https://img.shields.io/badge/GitHub-lcgash/dsh--plugin--uw-blue?style=flat-square&logo=github)](https://github.com/lcgash/dsh-plugin-uw)
 
-- **Union workspaces** — group two or more directories into one session so
-  the agent has access to all of them at once.
-- **Sidebar entry** — click the ⛓ icon in the sidebar footer (beside Settings)
-  to open the management panel.
-- **Management panel** — right-side overlay with two tabs:
-  - **Workspaces tab**: create, rename, open, remove unions and manage members.
-  - **Files tab**: browse member directories in a tree view (lazy-loaded).
-- **Permission preset** — each union has a `workspace-write` or
-  `danger-full-access` preset applied automatically when the session starts.
-- **Quick setup** — sessions with a single directory can be upgraded to a
-  union via the `/uw` command or the `➕` header button.
-- **Persistent** — union definitions survive agent restart
-  (`~/.dsh/union-workspaces.json`).
+---
 
-## Installation
+## 简介
+
+`dsh-plugin-uw`（联合工作区插件）允许你在 DSH Web GUI 中将多个目录合并到一个会话中。一个**主目录**（primary）加一个或多个**成员目录**（members）组成一个**联合工作区**（union workspace），AI 助手可以同时访问所有成员目录的文件。
+
+## 截图
+
+| 会话文件浏览 | 设置页面 |
+|---|---|
+| ![main](docs/screenshots/main.png) | ![setting](docs/screenshots/setting.png) |
+
+## 功能
+
+- **联合工作区** — 将两个或更多目录组合到一个会话中，AI 助手可同时访问所有成员目录。
+- **三种权限预设**：
+
+  | 预设 | 说明 |
+  |---|---|
+  | `workspace-write`（默认） | 主目录可读写，成员目录只读（使用 `read` 工具） |
+  | `workspace-write-all` | 所有成员目录可读写，非成员目录不可写（工作区路径 = 成员目录共同祖先） |
+  | `danger-full-access` | 所有目录可读写（无限制） |
+
+- **侧边栏集成** — 点击侧边栏底部的 ⛓ 图标打开管理面板。
+- **管理面板** — 侧边栏右侧面板，两个标签页：
+  - **工作区**：创建、删除、修改联合工作区，以及成员目录管理。
+  - **文件浏览**：以树形结构浏览成员目录（懒加载，支持递归展开）。
+- **快速升级** — 已有会话可通过 `/uw` 命令升级为联合工作区，或从会话头部按钮打开创建面板。
+- **持久化存储** — 联合工作区定义保存在 `~/.dsh/union-workspaces.json`，重启后依然有效。
+- **自动匹配** — 在侧边栏打开的工作区如果标题匹配某个联合工作区，自动标记为该联合工作区。
+
+## 安装
 
 ```bash
-# Clone the repo
-git clone https://github.com/lvchenguang/dsh-union-workspace.git
-cd dsh-union-workspace
+# 克隆仓库
+git clone https://github.com/lcgash/dsh-plugin-uw.git
+cd dsh-plugin-uw
 
-# Install dependencies
+# 安装依赖
 npm install
 
-# Build
+# 构建
 npm run build
 
-# Install into a DSH profile
+# 安装到 DSH profile（将 <name> 替换为你的 profile 名称）
 dsh plugin --profile <name> add link:$(pwd)
 ```
 
-## Architecture
-
-- **Host half** (`src/index.ts`) — runs in the DSH Node.js process, owns the
-  union store, serves `/api/dsh-union-workspace/*` routes, and applies
-  permission presets on session start.
-- **Client half** (`src/client/index.ts`) — runs in the web GUI, registers
-  locale dictionaries, settings section, conversation header badge/buttons,
-  the `/uw` command, and mounts the overlay dialog and files panel via DOM
-  injection.
-
-## Development
-
-```bash
-# Watch mode
-npm run watch
-
-# Type-check only
-npm run typecheck
-
-# Build everything
-npm run build
-```
-
-## Configuration
-
-The plugin row in `cordis.patch.yml`:
+安装后，在 `cordis.patch.yml` 中应包含以下插件行：
 
 ```yaml
 - insert:
     - id: union-workspace
       name: 'dsh-union-workspace'
 ```
+
+## 使用
+
+1. 在侧边栏底部点击 ⛓ 图标，或输入 `/uw` 命令。
+2. 选择创建模式：
+   - **快速模式**：选择多个目录，自动生成名称。
+   - **自定义模式**：设置名称、选择成员目录、选择权限预设。
+3. 创建成功后，在侧边栏会出现对应的工作区。
+4. 点击侧边栏的工作区，打开的新会话会自动应用联合工作区。
+5. 在会话头部右侧点击 ⛓ 按钮，展开成员目录文件列表面板。
+
+## 开发
+
+```bash
+# 构建
+npm run build
+
+# 类型检查
+npm run typecheck
+```
+
+## 架构
+
+- **Host 端**（`src/index.ts`）— 运行在 DSH Node.js 进程中，持有联合工作区存储（`~/.dsh/union-workspaces.json`），提供 `/api/dsh-union-workspace/*` 路由，并在会话启动时应用权限预设。
+- **Client 端**（`src/client/index.ts`）— 运行在 Web GUI 中，注册本地化字典、设置页面、会话头部按钮、`/uw` 命令，并通过 DOM 注入挂载覆盖层和文件面板。
+- **路由**（`src/routes.ts`）— REST API 端点，用于列出、同步、标记和浏览联合工作区。
+- **存储**（`src/store.ts`）— 基于文件的持久化存储，支持数据清洗和迁移。
 
 ## License
 

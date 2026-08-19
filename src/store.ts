@@ -37,7 +37,7 @@ export function sanitizeUnion(raw: unknown): Union | null {
   if (members.length < 2) return null
   const id = String(u.id ?? 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6))
   const title = String(u.title ?? members[0].split('/').pop() ?? 'workspace')
-  const preset = u.preset === 'workspace-write' ? 'workspace-write' : 'danger-full-access'
+  const preset = u.preset === 'workspace-write' || u.preset === 'workspace-write-all' ? u.preset : 'danger-full-access'
   return { id, title, members, preset }
 }
 

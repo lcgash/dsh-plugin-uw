@@ -125,7 +125,23 @@ function applyImpl(ctx: Context, config?: Config): void {
       const p = payload as { agent?: { session?: { id: string } } }
       const session = p?.agent?.session
       if (!session || !permissionPresets) return
-      const union = store.unionOf(session.id)
+      const sid = session.id
+      // If already marked, apply the preset and we're done.
+      let union = store.unionOf(sid)
+      if (!union) {
+        // Not marked yet: try to auto-mark by matching the session's workspace
+        // title to a union title. This handles sessions opened from the sidebar.
+        const ws = ctx.workspaceRegistry.list().find((w) =>
+          (w.sessionIds as readonly string[]).includes(sid as never),
+        )
+        if (ws) {
+          const match = (store.unions as readonly Union[]).find((u) => u.title === ws.title)
+          if (match) {
+            store.mark(sid, match.id)
+            union = match
+          }
+        }
+      }
       if (union) applyPresetTo(session, union, permissionPresets)
     } catch (error) {
       console.error('[union-workspace] session-start handler failed:', String(error))
