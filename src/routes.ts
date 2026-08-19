@@ -88,6 +88,14 @@ export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
       path: UW_API.list,
       handler: async (req, res) => {
         if (!guard(req)) return writeJson(res, 403, { ok: false, error: 'forbidden: loopback only' })
+        // Prune orphaned unions whose workspace was deleted from the sidebar.
+        const all = store.unions as readonly Union[]
+        const workspaceTitles = new Set(workspaceRegistry.list().map((w) => w.title))
+        const orphans = all.filter((u) => !workspaceTitles.has(u.title))
+        if (orphans.length > 0) {
+          const kept = all.filter((u) => workspaceTitles.has(u.title))
+          await store.replaceUnions(kept as Union[])
+        }
         writeJson(res, 200, { unions: store.unions })
       },
     },
