@@ -106,6 +106,17 @@ export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
         if (!guard(req)) return writeJson(res, 403, { ok: false, error: 'forbidden: loopback only' })
         const body = await readJsonBody(req)
         const next = Array.isArray(body?.unions) ? body.unions as Union[] : []
+        // Delete workspaces whose unions were removed from the settings page.
+        const prevTitles = new Set((store.unions as readonly Union[]).map((u) => u.title))
+        const nextTitles = new Set(next.map((u) => u.title))
+        const removedTitles = [...prevTitles].filter((t) => !nextTitles.has(t))
+        if (removedTitles.length > 0) {
+          for (const ws of workspaceRegistry.list()) {
+            if (removedTitles.includes(ws.title)) {
+              try { await workspaceRegistry.delete(ws.id) } catch { /* ignore */ }
+            }
+          }
+        }
         await store.replaceUnions(next)
         writeJson(res, 200, { ok: true, notice: `已保存 ${store.unions.length} 个联合工作区` })
       },
