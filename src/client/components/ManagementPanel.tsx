@@ -125,7 +125,17 @@ function UnionEditor(props: { union: Union; onUpdate: (u: Union) => void; onDele
         h('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary, #666)', marginTop: '2px' } },
           u.members[0] + (u.members.length > 1 ? ' + ' + (u.members.length - 1) + ' ' + tt('settings.list.members') : '')),
       ),
-      h('span', { style: { fontSize: '14px', color: 'var(--dsw-alias-label-secondary, #666)', transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' } }, '▾'),
+      h('span', {
+          style: {
+            fontSize: '22px',
+            color: 'var(--dsw-alias-label-secondary, #888)',
+            transform: expanded ? 'rotate(180deg)' : 'none',
+            transition: 'transform 0.25s ease',
+            lineHeight: '1',
+            padding: '2px 4px',
+            userSelect: 'none',
+          },
+        }, '▾'),
     ),
     // Expanded editor
     expanded ? h('div', { style: { padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' } },
