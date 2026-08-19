@@ -36,9 +36,10 @@ function writePolicyFor(union: Union): UnionWritePolicy {
   if (union.preset === 'danger-full-access') {
     return { allowWrite: () => true }
   }
-  // workspace-write: only the primary (index 0) is writable; members need the
-  // standard write tool + sandbox_permissions approval flow.
-  return { allowWrite: (index: number) => index === 0 }
+  // workspace-write: all member directories are writable via uw_write/uw_edit.
+  // The tools already validate containment in a member directory, so the
+  // sandbox single-root restriction does not apply.
+  return { allowWrite: () => true }
 }
 
 /** Normalize a path (remove trailing slashes). */
@@ -135,12 +136,12 @@ export function applyUnionTools(ctx: Context, store: UnionStoreBackend, fs: File
     systemPrompt.section({
       name: 'tool:uw_write',
       order: 102,
-      text: 'Use the `uw_write` tool to write files into member directories of a union workspace. Under `workspace-write` preset, only the primary directory (index 0) is writable; member directories at index > 0 are read-only and require the standard `write` tool with `sandbox_permissions` and a `justification` to request approval. Under `danger-full-access` all member directories are writable. Only use `uw_write` when the target path is inside a member directory — for the primary workspace root the standard `write` tool is sufficient.',
+      text: 'Use the `uw_write` tool to write files into member directories of a union workspace. All member directories are writable via `uw_write` under both presets (the tool validates the target is inside a member). Only use `uw_write` when the target path is inside a member directory — for the primary workspace root the standard `write` tool is sufficient.',
     })
     systemPrompt.section({
       name: 'tool:uw_edit',
       order: 102,
-      text: 'Use the `uw_edit` tool to edit files inside member directories of a union workspace. Write policy is the same as `uw_write`: only the primary directory is editable under `workspace-write`; member directories need `danger-full-access` or the standard `edit` tool with `sandbox_permissions` and a `justification`.',
+      text: 'Use the `uw_edit` tool to edit files inside member directories of a union workspace. All member directories are editable via `uw_edit` under both presets (the tool validates the target is inside a member). Only use `uw_edit` when the target path is inside a member directory — for the primary workspace root the standard `edit` tool is sufficient.',
     })
   }
 
@@ -182,7 +183,7 @@ export function applyUnionTools(ctx: Context, store: UnionStoreBackend, fs: File
   // ---- uw_write: write a file into a union member ----
   tools.register(defineTool({
     name: 'uw_write',
-    description: 'Write a UTF-8 text file into a member directory of the current union workspace. Only the primary directory is writable under workspace-write; member directories (index > 0) require danger-full-access preset. Writing to a member directory under workspace-write should instead use the standard `write` tool with `sandbox_permissions` to request approval.',
+    description: 'Write a UTF-8 text file into a member directory of the current union workspace. All member directories are writable under both presets. Only use `uw_write` when the target path is inside a member directory — for the primary workspace root the standard `write` tool is sufficient.',
     parameters: {
       file_path: { type: 'string', required: true, description: 'Path to write, absolute or relative to the current session cwd.' },
       content: { type: 'string', required: true, description: 'Full UTF-8 text content to write.' },
@@ -211,9 +212,7 @@ export function applyUnionTools(ctx: Context, store: UnionStoreBackend, fs: File
       if (!writePolicyFor(union).allowWrite(member.index)) {
         throw new Error(
           `uw_write: "${args.file_path}" is in member directory "${member.path}", which is read-only under the `
-          + `"${union.preset}" preset. Use the standard \`write\` tool with \`sandbox_permissions\` and a `
-          + `\`justification\` to request write approval for this member directory, or switch the union to `
-          + `danger-full-access.`,
+          + `"${union.preset}" preset. Switch the union to danger-full-access to enable writes to this member.`,
         )
       }
       const cwd = exec.agent?.session.header.cwd
@@ -228,7 +227,7 @@ export function applyUnionTools(ctx: Context, store: UnionStoreBackend, fs: File
   // ---- uw_edit: edit a file into a union member ----
   tools.register(defineTool({
     name: 'uw_edit',
-    description: 'Apply a literal text edit to a file inside a member directory of the current union workspace. Write policy is the same as uw_write: only the primary directory is editable under workspace-write; member directories need danger-full-access.',
+    description: 'Apply a literal text edit to a file inside a member directory of the current union workspace. All member directories are editable under both presets. Only use `uw_edit` when the target path is inside a member directory — for the primary workspace root the standard `edit` tool is sufficient.',
     parameters: {
       file_path: { type: 'string', required: true, description: 'Path to edit, absolute or relative to the current session cwd.' },
       old_string: { type: 'string', required: true, description: 'Literal text to replace. Must match exactly.' },
@@ -260,9 +259,7 @@ export function applyUnionTools(ctx: Context, store: UnionStoreBackend, fs: File
       if (!writePolicyFor(union).allowWrite(member.index)) {
         throw new Error(
           `uw_edit: "${args.file_path}" is in member directory "${member.path}", which is read-only under the `
-          + `"${union.preset}" preset. Use the standard \`edit\` tool with \`sandbox_permissions\` and a `
-          + `\`justification\` to request edit approval for this member directory, or switch the union to `
-          + `danger-full-access.`,
+          + `"${union.preset}" preset. Switch the union to danger-full-access to enable edits to this member.`,
         )
       }
       const cwd = exec.agent?.session.header.cwd

@@ -25,7 +25,7 @@
 
   | Preset | Description |
   |---|---|
-  | `workspace-write` (default) | Write primary, read members (via `read` tool); writing to members requires user approval |
+  | `workspace-write` (default) | Read/write all member directories (via `uw_write`/`uw_edit` tools) |
   | `danger-full-access` | Read/write everywhere (unrestricted) |
 
 - **Sidebar integration** — Click the ⛓ icon in the sidebar footer to open the management panel.
@@ -35,7 +35,7 @@
 - **Quick upgrade** — Upgrade an existing session via the `/uw` command or the header button.
 - **Persistent storage** — Union definitions survive restart (`~/.dsh/union-workspaces.json`).
 - **Auto-match** — Sessions opened from the sidebar are auto-matched to a union by workspace title.
-- **Member directory tools** — The plugin registers `uw_read`, `uw_write`, and `uw_edit` tools for reading/writing files in member directories, bypassing the sandbox single-root restriction. Under `workspace-write` only the primary directory is writable; `danger-full-access` allows writing to all members.
+- **Member directory tools** — The plugin registers `uw_read`, `uw_write`, and `uw_edit` tools for reading/writing files in member directories, bypassing the sandbox single-root restriction. All member directories are readable and writable.
 
 ## Installation
 
