@@ -45,9 +45,6 @@
 # 从 GitHub 安装
 dsh plugin add github:lcgash/dsh-plugin-uw
 
-# 从 Gitee 安装
-dsh plugin add gitee:mr-chenguang/dsh-plugin-uw
-
 # 或指定 profile 安装（将 <name> 替换为你的 profile 名称）
 dsh plugin --profile <name> add github:lcgash/dsh-plugin-uw
 ```
