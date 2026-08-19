@@ -1,17 +1,19 @@
 /**
- * Active-dictionary pick (document-language based, dsh-ssh precedent) bound
- * to the union-workspace interpolator. All copy lives in the locale
- * dictionaries.
+ * Active-dictionary pick bound to the union-workspace interpolator. The
+ * active locale comes from the dsh locale service (via the runtime capture),
+ * which reflects the user's language preference — NOT the document lang,
+ * which the dsh shell does not set. All copy lives in the locale dictionaries.
  */
+import { runtime } from './runtime.ts'
 import { en, t, zh, type UnionKey } from './locales.ts'
 
 /** Template values accepted by the interpolator. */
 export type TranslateValues = Record<string, string | number>
 
-/** Active dictionary, picked by the document language at call time. */
+/** Active dictionary, picked by the dsh locale service at call time. */
 export function dictionary(): Record<string, string> {
-  const lang = typeof document !== 'undefined' ? document.documentElement.lang : 'zh'
-  return lang.toLowerCase().startsWith('en') ? { ...en } : { ...zh }
+  const active = runtime.activeLocale?.toLowerCase() ?? 'zh'
+  return active.startsWith('en') ? { ...en } : { ...zh }
 }
 
 /** Translate a key with optional {name} template params (current language). */

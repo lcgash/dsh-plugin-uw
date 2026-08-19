@@ -12,6 +12,8 @@ export interface UnionRuntime {
   api: UnionApi
   workspaces: IWorkspaces | undefined
   sessions: ISessions | undefined
+  /* Locale snapshot: reflects the user's language preference. */
+  activeLocale: string
 }
 
 /** The live runtime (undefined until apply boots). */
@@ -19,12 +21,21 @@ export const runtime: UnionRuntime = {
   api: new UnionApi(),
   workspaces: undefined,
   sessions: undefined,
+  activeLocale: 'zh',
 }
 
 /** Called once from the client apply with the resolved services. */
-export function bindRuntime(workspaces: IWorkspaces | undefined, sessions: ISessions | undefined): void {
+export function bindRuntime(
+  workspaces: IWorkspaces | undefined,
+  sessions: ISessions | undefined,
+  locale?: { getLocale: () => { active: string }; subscribe: (fn: () => void) => () => void },
+): void {
   runtime.workspaces = workspaces
   runtime.sessions = sessions
+  if (locale !== undefined) {
+    runtime.activeLocale = locale.getLocale().active
+    locale.subscribe(() => { runtime.activeLocale = locale.getLocale().active })
+  }
 }
 
 /** Connect a freshly ensured primary workspace and open its session. */

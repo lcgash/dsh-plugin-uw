@@ -56,7 +56,7 @@ export function apply(ctx: ClientContext): void {
     return () => {}
   }, 'union-workspace: dictionaries')
 
-  bindRuntime(ctx.workspaces, ctx.sessions as never)
+  bindRuntime(ctx.workspaces, ctx.sessions as never, ctx.locale as never)
 
   // Settings section for union workspace management.
   ctx.slots.inject('settings.section' as never, () => {
