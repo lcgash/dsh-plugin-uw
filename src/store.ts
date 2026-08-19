@@ -38,7 +38,8 @@ export function sanitizeUnion(raw: unknown): Union | null {
   const id = String(u.id ?? 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6))
   const title = String(u.title ?? members[0].split('/').pop() ?? 'workspace')
   const preset = u.preset === 'workspace-write' ? u.preset : 'danger-full-access'
-  return { id, title, members, preset }
+  const workspaceId = typeof u.workspaceId === 'string' && u.workspaceId.length > 0 ? u.workspaceId : undefined
+  return { id, title, members, preset, ...(workspaceId ? { workspaceId } : {}) }
 }
 
 /** Backend for the union store. */
@@ -115,6 +116,14 @@ export class UnionStoreBackend {
 
   union(id: string): Union | undefined {
     return this.data.unions.find((u) => u.id === id)
+  }
+
+  /** Persist a workspace id on a union (lazily set by ensurePrimary). */
+  async setUnionWorkspace(id: string, workspaceId: string): Promise<void> {
+    const union = this.data.unions.find((u) => u.id === id)
+    if (!union || union.workspaceId === workspaceId) return
+    union.workspaceId = workspaceId
+    await this.save()
   }
 
   mark(sessionId: string, unionId: string): void {

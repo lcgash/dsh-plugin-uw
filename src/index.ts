@@ -167,7 +167,8 @@ function applyImpl(ctx: Context, config?: Config): void {
       let union = store.unionOf(sid)
       if (!union) {
         // Not marked yet: try to auto-mark by matching the session's cwd to a
-        // workspace path, then matching the workspace title to a union title.
+        // workspace path, then matching that workspace to a union by its stored
+        // workspaceId (or title as fallback for legacy unions).
         // We match by cwd rather than by sessionIds because the
         // agent/session-start event fires BEFORE the session is attached to the
         // workspace (the API proxy calls attachSession after ensureSession).
@@ -175,7 +176,9 @@ function applyImpl(ctx: Context, config?: Config): void {
         if (cwd) {
           const ws = ctx.workspaceRegistry.list().find((w) => w.path === cwd)
           if (ws) {
-            const match = (store.unions as readonly Union[]).find((u) => u.title === ws.title)
+            const match = (store.unions as readonly Union[]).find(
+              (u) => u.workspaceId === ws.id || u.title === ws.title,
+            )
             if (match) {
               store.mark(sid, match.id)
               union = match

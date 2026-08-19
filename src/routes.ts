@@ -5,10 +5,11 @@
  * deployments must not serve them.
  */
 import type { IncomingMessage, ServerResponse } from 'node:http'
+import { mkdir } from 'node:fs/promises'
 import type { FileSystem } from './host-types.ts'
 import type { PermissionPresetService } from './host-types.ts'
 import type { Session } from '@deepseek-ai/dsh-session'
-import type { WorkspaceRegistry } from '@deepseek-ai/dsh-workspace'
+import type { Workspace, WorkspaceRegistry } from '@deepseek-ai/dsh-workspace'
 import type { WebRoute } from '@deepseek-ai/dsh-host-webserver'
 import { UW_API, type FileEntry, type Union } from './protocol.ts'
 import type { UnionStoreBackend } from './store.ts'
@@ -90,10 +91,18 @@ export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
         if (!guard(req)) return writeJson(res, 403, { ok: false, error: 'forbidden: loopback only' })
         // Prune orphaned unions whose workspace was deleted from the sidebar.
         const all = store.unions as readonly Union[]
-        const workspaceTitles = new Set(workspaceRegistry.list().map((w) => w.title))
-        const orphans = all.filter((u) => !workspaceTitles.has(u.title))
+        const workspaceIds = new Set<string>(workspaceRegistry.list().map((w) => w.id as string))
+        const titleIndex = new Map(workspaceRegistry.list().map((w) => [w.title, w.id] as const))
+        const orphans = all.filter((u) => {
+          if (u.workspaceId) return !workspaceIds.has(u.workspaceId)
+          // Legacy: no workspaceId stored, fall back to title check.
+          return !titleIndex.has(u.title)
+        })
         if (orphans.length > 0) {
-          const kept = all.filter((u) => workspaceTitles.has(u.title))
+          const kept = all.filter((u) => {
+            if (u.workspaceId) return workspaceIds.has(u.workspaceId)
+            return titleIndex.has(u.title)
+          })
           await store.replaceUnions(kept as Union[])
         }
         writeJson(res, 200, { unions: store.unions })
@@ -107,13 +116,16 @@ export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
         const body = await readJsonBody(req)
         const next = Array.isArray(body?.unions) ? body.unions as Union[] : []
         // Delete workspaces whose unions were removed from the settings page.
-        const prevTitles = new Set((store.unions as readonly Union[]).map((u) => u.title))
-        const nextTitles = new Set(next.map((u) => u.title))
-        const removedTitles = [...prevTitles].filter((t) => !nextTitles.has(t))
-        if (removedTitles.length > 0) {
+        const prev = store.unions as readonly Union[]
+        const prevIds = new Set(prev.map((u) => u.id))
+        const nextIds = new Set(next.map((u) => u.id))
+        const removed = prev.filter((u) => !nextIds.has(u.id))
+        for (const u of removed) {
+          if (!u.workspaceId) continue
           for (const ws of workspaceRegistry.list()) {
-            if (removedTitles.includes(ws.title)) {
+            if (ws.id === u.workspaceId) {
               try { await workspaceRegistry.delete(ws.id) } catch { /* ignore */ }
+              break
             }
           }
         }
@@ -130,15 +142,22 @@ export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
         const union = await resolveUnion(deps, res, body)
         if (!union) return
         try {
-          // Workspace title is unique: if a workspace with the same title
-          // already exists, reuse it.
-          let ws = workspaceRegistry.list().find((w) => w.title === union.title)
+          // Look up the union's dedicated workspace by id, or create one.
+          let ws: Workspace | undefined
+          if (union.workspaceId) {
+            ws = workspaceRegistry.list().find((w) => w.id === union.workspaceId)
+          }
           if (ws === undefined) {
-            // Always use the primary member as the workspace root. Never use a
-            // common ancestor — that would expose sibling directories outside
-            // the union members to the agent.
-            ws = await workspaceRegistry.create(union.members[0], union.title)
+            // Each union gets its own workspace at a unique synthetic path
+            // under the primary member. This avoids path collisions with
+            // regular workspaces and with other unions sharing a primary.
+            const syntheticPath = union.members[0].replace(/\/+$/, '') + '/.dsh-union-' + union.id
+            // Ensure the directory exists.
+            try { await mkdir(syntheticPath, { recursive: true }) } catch { /* already exists */ }
+            ws = await workspaceRegistry.create(syntheticPath, union.title)
             if (ws.title !== union.title) await ws.setTitle(union.title)
+            // Persist the workspace id so subsequent lookups go by id.
+            await store.setUnionWorkspace(union.id, ws.id)
           }
           // Move the session: detach from its original workspace (if any) and
           // attach to the union workspace, so other sessions in the original

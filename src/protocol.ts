@@ -14,6 +14,13 @@ export interface Union {
   members: string[]
   /** Sandbox preset applied to every session marked with this union. */
   preset: 'workspace-write' | 'danger-full-access'
+  /**
+   * DSH workspace id for this union's dedicated workspace. The workspace
+   * lives at a unique synthetic path under the primary member, so it never
+   * collides with a regular workspace on the same directory or with another
+   * union that shares a primary member. Set lazily by `ensurePrimary`.
+   */
+  workspaceId?: string
 }
 
 /** The persisted store: unions plus per-session marks. */
