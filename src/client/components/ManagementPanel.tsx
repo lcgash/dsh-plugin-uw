@@ -206,6 +206,16 @@ export function ManagementPanel(props: ManagementPanelProps): ReturnType<typeof 
   }
   useEffect(() => { load() }, [api])
 
+  // Refresh union list when the workspace list changes (e.g. a workspace was
+  // deleted from the sidebar). The list route also prunes orphaned unions, so
+  // this keeps the settings page in sync.
+  useEffect(() => {
+    const ws = runtime.workspaces
+    if (ws === undefined) return
+    const unsub = ws.list.subscribe(() => { load() })
+    return () => { unsub() }
+  }, [api])
+
   // Create new union
   const createUnion = async (): Promise<void> => {
     if (form.members.length < 2) { patchForm({ notice: tt('overlay.minTwo'), noticeErr: true }); return }
