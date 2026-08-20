@@ -94,10 +94,12 @@ export class UnionApi {
   }
 
   async searchFiles(unionId: string, maxFiles?: number, ignoreDirs?: string[]): Promise<SearchFilesResult> {
-    const response = await fetch(UW_API.searchFiles, {
+    // Use the listFiles route with recurse=true to walk all member directories.
+    // Send the unionId to let the route resolve the union and walk every member.
+    const response = await fetch(UW_API.listFiles, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ unionId, maxFiles, ignoreDirs }),
+      body: JSON.stringify({ unionId, dir: '', recurse: true, maxFiles, ignoreDirs }),
     })
     return readJson<SearchFilesResult>(response)
   }

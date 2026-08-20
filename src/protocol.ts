@@ -46,8 +46,6 @@ export const UW_API = {
   currentPath: '/api/dsh-union-workspace/current-path',
   /** POST { unionId, dir } -> { ok, root, entries } */
   listFiles: '/api/dsh-union-workspace/list-files',
-  /** POST { unionId, maxFiles?, ignoreDirs? } -> { ok, files } */
-  searchFiles: '/api/dsh-union-workspace/search-files',
 } as const
 
 /** One file-system listing entry (browser-safe projection of FsDirEntry). */
@@ -79,11 +77,20 @@ export interface CurrentPathResult {
 export interface ListFilesPayload {
   unionId: string
   dir: string
+  /** When true, recursively walk the directory tree and return all files. */
+  recurse?: boolean
+  /** Max files to collect when recurse is true. */
+  maxFiles?: number
+  /** Directory basenames to skip when recurse is true. */
+  ignoreDirs?: string[]
 }
 export interface ListFilesResult {
   ok: boolean
   root?: string
   entries?: FileEntry[]
+  /** When recurse was true, the recursive file list. */
+  files?: SearchFileEntry[]
+  truncated?: boolean
   error?: string
 }
 

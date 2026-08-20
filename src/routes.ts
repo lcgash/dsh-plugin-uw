@@ -230,6 +230,76 @@ export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
         const union = await resolveUnion(deps, res, body)
         if (!union) return
         const dir = typeof body?.dir === 'string' ? body.dir : ''
+
+        // When recurse is true, walk the directory tree and return all files
+        if (body?.recurse === true) {
+          const maxFiles = typeof body?.maxFiles === 'number' ? body.maxFiles : 5000
+          const ignoreDirs = Array.isArray(body?.ignoreDirs)
+            ? new Set(body.ignoreDirs as string[])
+            : new Set(['node_modules', '.git', '.svn', '.hg', '.DS_Store', '__pycache__', '.dsh-union'])
+          const files: SearchFileEntry[] = []
+          const queue: { path: string; relative: string; memberIndex: number; memberPath: string }[] = []
+          let truncated = false
+
+          if (dir) {
+            // Walk from a specific directory
+            const nd = norm(dir)
+            let memberIndex = -1
+            let memberPath = ''
+            for (let i = 0; i < union.members.length; i++) {
+              if (nd === union.members[i] || nd.startsWith(union.members[i] + '/')) {
+                memberIndex = i
+                memberPath = union.members[i]
+                break
+              }
+            }
+            if (memberIndex < 0) {
+              return writeJson(res, 400, { ok: false, error: '目录不在任何成员目录内' })
+            }
+            const relativeBase = nd === memberPath ? '' : nd.slice(memberPath.length + 1)
+            queue.push({ path: nd, relative: relativeBase, memberIndex, memberPath })
+          } else {
+            // Walk from all member directories
+            for (let i = 0; i < union.members.length; i++) {
+              queue.push({ path: union.members[i], relative: '', memberIndex: i, memberPath: union.members[i] })
+            }
+          }
+
+          // Shared walk loop using task-level memberIndex/memberPath
+          try {
+            while (queue.length > 0 && !truncated) {
+              const task = queue.shift()!
+              let handle
+              try {
+                handle = await opendir(task.path)
+              } catch {
+                continue
+              }
+              try {
+                for await (const dirent of handle) {
+                  if (files.length >= maxFiles) { truncated = true; break }
+                  const child = task.path + '/' + dirent.name
+                  const childRelative = task.relative === '' ? dirent.name : task.relative + '/' + dirent.name
+                  if (dirent.isDirectory()) {
+                    if (ignoreDirs.has(dirent.name)) continue
+                    files.push({ path: child, relative: childRelative, memberIndex: task.memberIndex, memberPath: task.memberPath, kind: 'dir' })
+                    queue.push({ path: child, relative: childRelative, memberIndex: task.memberIndex, memberPath: task.memberPath })
+                  } else if (dirent.isFile()) {
+                    files.push({ path: child, relative: childRelative, memberIndex: task.memberIndex, memberPath: task.memberPath, kind: 'file' })
+                  }
+                }
+              } finally {
+                handle.close().catch(() => {})
+              }
+            }
+            writeJson(res, 200, { ok: true, files, truncated } satisfies SearchFilesResult)
+          } catch (error) {
+            writeJson(res, 500, { ok: false, error: String((error as Error)?.message ?? error) })
+          }
+          return
+        }
+
+        // Original behavior: list files in a single directory
         if (!dir) return writeJson(res, 400, { ok: false, error: '缺少目录参数' })
         const nd = norm(dir)
         if (!union.members.some((m) => nd === m || nd.startsWith(m + '/'))) {
@@ -244,62 +314,6 @@ export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
             size: typeof en.size === 'number' ? en.size : undefined,
           }))
           writeJson(res, 200, { ok: true, root: nd, entries: out })
-        } catch (error) {
-          writeJson(res, 500, { ok: false, error: String((error as Error)?.message ?? error) })
-        }
-      },
-    },
-    {
-      kind: 'exact',
-      path: UW_API.searchFiles,
-      handler: async (req, res) => {
-        if (!guard(req)) return writeJson(res, 403, { ok: false, error: 'forbidden: loopback only' })
-        const body = await readJsonBody(req)
-        const union = await resolveUnion(deps, res, body)
-        if (!union) return
-        const maxFiles = typeof body?.maxFiles === 'number' ? body.maxFiles : 5000
-        const ignoreDirs = Array.isArray(body?.ignoreDirs)
-          ? new Set(body.ignoreDirs as string[])
-          : new Set(['node_modules', '.git', '.svn', '.hg', '.DS_Store', '__pycache__', '.dsh-union'])
-        const files: SearchFileEntry[] = []
-        const queue: { path: string; relative: string; memberIndex: number; memberPath: string }[] = []
-        let truncated = false
-
-        // Seed the queue with member directories
-        for (let i = 0; i < union.members.length; i++) {
-          queue.push({ path: union.members[i], relative: '', memberIndex: i, memberPath: union.members[i] })
-        }
-
-        try {
-          while (queue.length > 0 && !truncated) {
-            const task = queue.shift()!
-            let handle
-            try {
-              handle = await opendir(task.path)
-            } catch {
-              continue // skip unreadable directories
-            }
-            try {
-              for await (const dirent of handle) {
-                if (files.length >= maxFiles) {
-                  truncated = true
-                  break
-                }
-                const child = task.path + '/' + dirent.name
-                const childRelative = task.relative === '' ? dirent.name : task.relative + '/' + dirent.name
-                if (dirent.isDirectory()) {
-                  if (ignoreDirs.has(dirent.name)) continue
-                  files.push({ path: child, relative: childRelative, memberIndex: task.memberIndex, memberPath: task.memberPath, kind: 'dir' })
-                  queue.push({ path: child, relative: childRelative, memberIndex: task.memberIndex, memberPath: task.memberPath })
-                } else if (dirent.isFile()) {
-                  files.push({ path: child, relative: childRelative, memberIndex: task.memberIndex, memberPath: task.memberPath, kind: 'file' })
-                }
-              }
-            } finally {
-              handle.close().catch(() => {})
-            }
-          }
-          writeJson(res, 200, { ok: true, files, truncated } satisfies SearchFilesResult)
         } catch (error) {
           writeJson(res, 500, { ok: false, error: String((error as Error)?.message ?? error) })
         }
