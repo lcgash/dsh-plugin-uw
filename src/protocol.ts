@@ -46,6 +46,8 @@ export const UW_API = {
   currentPath: '/api/dsh-union-workspace/current-path',
   /** POST { unionId, dir } -> { ok, root, entries } */
   listFiles: '/api/dsh-union-workspace/list-files',
+  /** POST { unionId, maxFiles?, ignoreDirs? } -> { ok, files } */
+  searchFiles: '/api/dsh-union-workspace/search-files',
 } as const
 
 /** One file-system listing entry (browser-safe projection of FsDirEntry). */
@@ -82,5 +84,31 @@ export interface ListFilesResult {
   ok: boolean
   root?: string
   entries?: FileEntry[]
+  error?: string
+}
+
+/** One search result entry (browser-safe projection of a found file). */
+export interface SearchFileEntry {
+  /** Absolute path on disk. */
+  path: string
+  /** Display path relative to the member directory (e.g. "src/index.ts"). */
+  relative: string
+  /** The member directory index this file belongs to. */
+  memberIndex: number
+  /** The member directory this file belongs to. */
+  memberPath: string
+  kind: 'file' | 'dir'
+}
+
+export interface SearchFilesPayload {
+  unionId: string
+  maxFiles?: number
+  ignoreDirs?: string[]
+}
+
+export interface SearchFilesResult {
+  ok: boolean
+  files?: SearchFileEntry[]
+  truncated?: boolean
   error?: string
 }

@@ -23,6 +23,8 @@ import type {} from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 // Type-only: pulls the ctx.commandUi service merge.
 import type {} from '@deepseek-ai/dsh-client-ui-commands/client'
+// Type-only: pulls the ctx.inputTriggers service merge.
+import type {} from '@deepseek-ai/dsh-client-ui-input-trigger/client'
 import { FilesHeaderAction } from './components/Header.tsx'
 import { ManagementPanel } from './components/ManagementPanel.tsx'
 import { Overlay } from './components/Overlay.tsx'
@@ -31,6 +33,7 @@ import { en, zh, type UnionKey } from './locales.ts'
 import { bindRuntime, runtime } from './runtime.ts'
 import { unionStore } from './store.ts'
 import { tt } from './translate.ts'
+import { createUnionMentionSource } from './mention.ts'
 
 /** Locale namespace this plugin owns. */
 const NS = 'union-workspace'
@@ -42,7 +45,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 }
 
 /** Required services (fiber inject waiting — the runtime must be up first). */
-export const inject = ['slots', 'sessions', 'workspaces', 'locale']
+export const inject = ['slots', 'sessions', 'workspaces', 'locale', 'inputTriggers']
 
 /**
  * Mount the union-workspace browser half.
@@ -164,5 +167,14 @@ export function apply(ctx: ClientContext): void {
         },
       },
     }), 'union-workspace: /uw command')
+  }
+
+  // The @mention source for union workspace member files.
+  const inputTriggers = ctx.get('inputTriggers') as { registerSource: (src: unknown) => () => void } | undefined
+  if (inputTriggers !== undefined) {
+    ctx.effect(() => {
+      const source = createUnionMentionSource(ctx)
+      return inputTriggers.registerSource(source)
+    }, 'union-workspace: @mention source')
   }
 }

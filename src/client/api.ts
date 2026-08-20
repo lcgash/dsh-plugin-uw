@@ -9,6 +9,7 @@ import {
   type ListFilesResult,
   type ListResult,
   type MutateResult,
+  type SearchFilesResult,
   type StatusResult,
   type SyncPayload,
 } from '../protocol.ts'
@@ -90,5 +91,14 @@ export class UnionApi {
       body: JSON.stringify(payload),
     })
     return readJson<ListFilesResult>(response)
+  }
+
+  async searchFiles(unionId: string, maxFiles?: number, ignoreDirs?: string[]): Promise<SearchFilesResult> {
+    const response = await fetch(UW_API.searchFiles, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ unionId, maxFiles, ignoreDirs }),
+    })
+    return readJson<SearchFilesResult>(response)
   }
 }

@@ -5,13 +5,13 @@
  * deployments must not serve them.
  */
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { mkdir } from 'node:fs/promises'
+import { mkdir, opendir } from 'node:fs/promises'
 import type { FileSystem } from './host-types.ts'
 import type { PermissionPresetService } from './host-types.ts'
 import type { Session } from '@deepseek-ai/dsh-session'
 import type { Workspace, WorkspaceRegistry } from '@deepseek-ai/dsh-workspace'
 import type { WebRoute } from '@deepseek-ai/dsh-host-webserver'
-import { UW_API, type FileEntry, type Union } from './protocol.ts'
+import { UW_API, type FileEntry, type SearchFileEntry, type SearchFilesResult, type Union } from './protocol.ts'
 import type { UnionStoreBackend } from './store.ts'
 
 /** One JSON response. */
@@ -244,6 +244,61 @@ export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
             size: typeof en.size === 'number' ? en.size : undefined,
           }))
           writeJson(res, 200, { ok: true, root: nd, entries: out })
+        } catch (error) {
+          writeJson(res, 500, { ok: false, error: String((error as Error)?.message ?? error) })
+        }
+      },
+    },
+    {
+      kind: 'exact',
+      path: UW_API.searchFiles,
+      handler: async (req, res) => {
+        if (!guard(req)) return writeJson(res, 403, { ok: false, error: 'forbidden: loopback only' })
+        const body = await readJsonBody(req)
+        const union = await resolveUnion(deps, res, body)
+        if (!union) return
+        const maxFiles = typeof body?.maxFiles === 'number' ? body.maxFiles : 5000
+        const ignoreDirs = Array.isArray(body?.ignoreDirs)
+          ? new Set(body.ignoreDirs as string[])
+          : new Set(['node_modules', '.git', '.svn', '.hg', '.DS_Store', '__pycache__', '.dsh-union'])
+        const files: SearchFileEntry[] = []
+        const queue: { path: string; memberIndex: number; memberPath: string }[] = []
+        let truncated = false
+
+        // Seed the queue with member directories
+        for (let i = 0; i < union.members.length; i++) {
+          queue.push({ path: union.members[i], memberIndex: i, memberPath: union.members[i] })
+        }
+
+        try {
+          while (queue.length > 0 && !truncated) {
+            const task = queue.shift()!
+            let handle
+            try {
+              handle = await opendir(task.path)
+            } catch {
+              continue // skip unreadable directories
+            }
+            try {
+              for await (const dirent of handle) {
+                if (files.length >= maxFiles) {
+                  truncated = true
+                  break
+                }
+                const child = task.path + '/' + dirent.name
+                if (dirent.isDirectory()) {
+                  if (ignoreDirs.has(dirent.name)) continue
+                  files.push({ path: child, relative: dirent.name, memberIndex: task.memberIndex, memberPath: task.memberPath, kind: 'dir' })
+                  queue.push({ path: child, memberIndex: task.memberIndex, memberPath: task.memberPath })
+                } else if (dirent.isFile()) {
+                  files.push({ path: child, relative: dirent.name, memberIndex: task.memberIndex, memberPath: task.memberPath, kind: 'file' })
+                }
+              }
+            } finally {
+              handle.close().catch(() => {})
+            }
+          }
+          writeJson(res, 200, { ok: true, files, truncated } satisfies SearchFilesResult)
         } catch (error) {
           writeJson(res, 500, { ok: false, error: String((error as Error)?.message ?? error) })
         }

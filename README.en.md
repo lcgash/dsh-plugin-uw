@@ -46,6 +46,7 @@ Mount just one directory and the AI is blind to the others — the task simply f
 - **Persistent storage** — Union definitions survive restart (`~/.dsh/union-workspaces.json`).
 - **Auto-match** — Sessions opened from the sidebar are auto-matched to a union by workspace title.
 - **Member directory tools** — The plugin registers `uw_read`, `uw_write`, `uw_edit`, `uw_delete`, and `uw_move` tools for reading, writing, deleting, and moving files in member directories, bypassing the sandbox single-root restriction. All member directories are readable, writable, deletable, and movable.
+- **@mention** — Type `@` in the chat input to search files from all member directories, making it easy to reference files across the union.
 
 ## Installation
 
