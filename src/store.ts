@@ -81,10 +81,7 @@ export class UnionStoreBackend {
           marks: typeof p.marks === 'object' && p.marks !== null ? p.marks as Record<string, string> : {},
         }
       }
-      console.log(`[union-workspace] loaded ${this.data.unions.length} unions from ${this.storePath}`)
-    } catch (error) {
-      console.log(`[union-workspace] no existing store (${String((error as Error)?.message ?? error)})`)
-    }
+    } catch {}
   }
 
   /** Persist the store under `~/.dsh/` with an explicit full-access policy. */

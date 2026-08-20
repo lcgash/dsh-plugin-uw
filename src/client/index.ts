@@ -49,7 +49,6 @@ export const inject = ['slots', 'sessions', 'workspaces', 'locale']
  * @param ctx - client root context.
  */
 export function apply(ctx: ClientContext): void {
-  console.log('union-workspace: apply() called')
   ctx.effect(() => {
     const locale = ctx.get('locale') as { register: (ns: string, dicts: Record<string, Record<string, string>>) => () => void } | undefined
     if (locale !== undefined) return locale.register(NS, { zh, en })
