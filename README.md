@@ -2,6 +2,8 @@
 
 > 联合工作区插件 — 将多个目录合并到一个会话中，让 AI 助手同时访问所有成员目录。
 
+[English](./README.en.md) | 中文
+
 [![GitHub](https://img.shields.io/badge/GitHub-lcgash/dsh--plugin--uw-blue?style=flat-square&logo=github)](https://github.com/lcgash/dsh-plugin-uw)
 [![Gitee](https://img.shields.io/badge/Gitee-mr--chenguang/dsh--plugin--uw-red?style=flat-square&logo=gitee)](https://gitee.com/mr-chenguang/dsh-plugin-uw)
 [![npm](https://img.shields.io/npm/v/dsh-union-workspace?style=flat-square&logo=npm)](https://www.npmjs.com/package/dsh-union-workspace)
