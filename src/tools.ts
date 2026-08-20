@@ -132,34 +132,34 @@ export function applyUnionTools(ctx: Context, store: UnionStoreBackend, fs: File
     systemPrompt.section({
       name: 'tool:uw_read',
       order: 102,
-      text: 'Use the `uw_read` tool to read files from member directories of a union workspace. It works like the standard `read` tool but can access every member directory (not just the primary workspace root). Only use it when the file is outside the primary workspace root — try `read` first, then `uw_read` if the standard tool reports a sandbox denial.',
+      text: 'UNION WORKSPACE: The primary directory (index 0) is your normal workspace root — use the standard `read` tool for it. For ADDITIONAL MEMBER directories (index > 0, the ones you added as extra members) use `uw_read`. Only use `uw_read` when the target is inside a member directory and the standard `read` tool cannot reach it.',
     })
     systemPrompt.section({
       name: 'tool:uw_write',
       order: 102,
-      text: 'Use the `uw_write` tool to write files into member directories of a union workspace. All member directories are writable via `uw_write` under both presets (the tool validates the target is inside a member). Only use `uw_write` when the target path is inside a member directory — for the primary workspace root the standard `write` tool is sufficient.',
+      text: 'UNION WORKSPACE: The primary directory (index 0) is your normal workspace root — use the standard `write` tool for it. For ADDITIONAL MEMBER directories (index > 0) use `uw_write`. Only use `uw_write` when the target is inside a member directory — for the primary root the standard `write` tool is sufficient.',
     })
     systemPrompt.section({
       name: 'tool:uw_edit',
       order: 102,
-      text: 'Use the `uw_edit` tool to edit files inside member directories of a union workspace. All member directories are editable via `uw_edit` under both presets (the tool validates the target is inside a member). Only use `uw_edit` when the target path is inside a member directory — for the primary workspace root the standard `edit` tool is sufficient.',
+      text: 'UNION WORKSPACE: The primary directory (index 0) is your normal workspace root — use the standard `edit` tool for it. For ADDITIONAL MEMBER directories (index > 0) use `uw_edit`. Only use `uw_edit` when the target is inside a member directory — for the primary root the standard `edit` tool is sufficient.',
     })
     systemPrompt.section({
       name: 'tool:uw_delete',
       order: 102,
-      text: 'Use the `uw_delete` tool to delete files inside member directories of a union workspace. All member directories are deletable via `uw_delete` under both presets (the tool validates the target is inside a member). Only use `uw_delete` when the target path is inside a member directory — for the primary workspace root the standard `write`/`edit` (with empty content) should be preferred.',
+      text: 'UNION WORKSPACE: The primary directory (index 0) is your normal workspace root — use standard shell commands (`rm`, `mv`) for it. For ADDITIONAL MEMBER directories (index > 0) use `uw_delete`. Only use `uw_delete` when the target is inside a member directory.',
     })
     systemPrompt.section({
       name: 'tool:uw_move',
       order: 102,
-      text: 'Use the `uw_move` tool to move or rename files inside member directories of a union workspace. All member directories support move/rename via `uw_move` under both presets (the tool validates both source and destination are inside members). Only use `uw_move` when the target paths are inside member directories.',
+      text: 'UNION WORKSPACE: The primary directory (index 0) is your normal workspace root — use standard shell commands (`mv`) for it. For ADDITIONAL MEMBER directories (index > 0) use `uw_move`. Only use `uw_move` when the target is inside a member directory.',
     })
   }
 
   // ---- uw_read: read any member directory file ----
   tools.register(defineTool({
     name: 'uw_read',
-    description: 'Read a text file inside a member directory of the current union workspace. Use this when the standard `read` tool cannot reach a member directory (it is outside the primary workspace root).',
+    description: 'Read a file inside an ADDITIONAL MEMBER DIRECTORY of a union workspace. The primary directory (index 0) is your normal workspace root — use the standard `read` tool for it. Only use this when the file is inside a member directory (index > 0) that the standard `read` tool cannot reach.',
     parameters: {
       file_path: { type: 'string', required: true, description: 'Path to read, absolute or relative to the current session cwd.' },
     },
@@ -194,7 +194,7 @@ export function applyUnionTools(ctx: Context, store: UnionStoreBackend, fs: File
   // ---- uw_write: write a file into a union member ----
   tools.register(defineTool({
     name: 'uw_write',
-    description: 'Write a UTF-8 text file into a member directory of the current union workspace. All member directories are writable under both presets. Only use `uw_write` when the target path is inside a member directory — for the primary workspace root the standard `write` tool is sufficient.',
+    description: 'Write a file into an ADDITIONAL MEMBER DIRECTORY of a union workspace. The primary directory (index 0) is your normal workspace root — use the standard `write` tool for it. Only use this when the target is inside a member directory (index > 0) that the standard `write` tool cannot reach.',
     parameters: {
       file_path: { type: 'string', required: true, description: 'Path to write, absolute or relative to the current session cwd.' },
       content: { type: 'string', required: true, description: 'Full UTF-8 text content to write.' },
@@ -238,7 +238,7 @@ export function applyUnionTools(ctx: Context, store: UnionStoreBackend, fs: File
   // ---- uw_edit: edit a file into a union member ----
   tools.register(defineTool({
     name: 'uw_edit',
-    description: 'Apply a literal text edit to a file inside a member directory of the current union workspace. All member directories are editable under both presets. Only use `uw_edit` when the target path is inside a member directory — for the primary workspace root the standard `edit` tool is sufficient.',
+    description: 'Edit a file inside an ADDITIONAL MEMBER DIRECTORY of a union workspace. The primary directory (index 0) is your normal workspace root — use the standard `edit` tool for it. Only use this when the target is inside a member directory (index > 0) that the standard `edit` tool cannot reach.',
     parameters: {
       file_path: { type: 'string', required: true, description: 'Path to edit, absolute or relative to the current session cwd.' },
       old_string: { type: 'string', required: true, description: 'Literal text to replace. Must match exactly.' },
@@ -289,7 +289,7 @@ export function applyUnionTools(ctx: Context, store: UnionStoreBackend, fs: File
   // ---- uw_delete: delete a file inside a member directory ----
   tools.register(defineTool({
     name: 'uw_delete',
-    description: 'Delete a file inside a member directory of the current union workspace. All member directories are deletable under both presets. Only use `uw_delete` when the target path is inside a member directory — for the primary workspace root, prefer the standard `write`/`edit` (with empty content).',
+    description: 'Delete a file inside an ADDITIONAL MEMBER DIRECTORY of a union workspace. The primary directory (index 0) is your normal workspace root — use standard shell commands (`rm`) for it. Only use this when the target is inside a member directory (index > 0) that standard tools cannot reach.',
     parameters: {
       file_path: { type: 'string', required: true, description: 'Path to delete, absolute or relative to the current session cwd.' },
     },
@@ -331,7 +331,7 @@ export function applyUnionTools(ctx: Context, store: UnionStoreBackend, fs: File
   // ---- uw_move: move or rename a file inside member directories ----
   tools.register(defineTool({
     name: 'uw_move',
-    description: 'Move or rename a file inside a member directory of the current union workspace. Both source and destination must be inside member directories. All member directories support move/rename under both presets.',
+    description: 'Move or rename a file inside an ADDITIONAL MEMBER DIRECTORY of a union workspace. The primary directory (index 0) is your normal workspace root — use standard shell commands (`mv`) for it. Only use this when the target is inside a member directory (index > 0) that standard tools cannot reach.',
     parameters: {
       source: { type: 'string', required: true, description: 'Current path to move from, absolute or relative to the current session cwd.' },
       destination: { type: 'string', required: true, description: 'Target path to move to, absolute or relative to the current session cwd.' },
