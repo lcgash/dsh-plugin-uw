@@ -1,7 +1,7 @@
 {
   "name": "dsh-union-workspace",
   "description": "Union workspaces for the dsh web GUI: merge multiple directories into one session (primary + members), persist them under ~/.dsh/union-workspaces.json, apply a permission preset per union, browse member files in a right-side panel, and manage everything from a settings section and the /uw command. Hot-pluggable — mounted via ~/.dsh/cordis.patch.yml + a profile node_modules link, no dsh source changes.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
