@@ -12,14 +12,11 @@ English | [中文](./README.md)
 
 ## The problem it solves
 
-When working on a project that spans multiple directories in DSH, you often face a dilemma:
+Full-stack development often means your code lives across several repos — frontend, backend, and a shared types or protocols package. To make a single cross-stack change, the AI needs to see and edit all of them at once.
 
-- **You want to give the AI a restricted directory scope** — you don't want it to roam freely through unrelated directories (like your whole `~/Projects`), and you don't want to create separate sessions for each subdirectory and switch between them.
-- **But you genuinely need simultaneous access to several directories** — a typical case is **full-stack development**: frontend repo, backend repo, and a shared types/protocols repo living in different places. The AI needs to read and write across all of them to complete a single cross-stack change.
+Mount just one directory and the AI is blind to the others — the task simply fails. Mount a huge directory instead (your whole home, say) and you pay for it in **context explosion**: tool scans and file searches fan out across countless irrelevant files, burning tokens, degrading answer quality, and handing over far more directory access than you meant to.
 
-Mount just one directory and the AI can't see the other repos, so cross-stack tasks fail. Mount a huge directory (e.g. your whole home) and you get **context explosion** — tool scans and file searches spread across countless irrelevant files, wasting tokens, degrading answer quality, and granting far more directory access than needed.
-
-**Union Workspaces** is built for this exact pain point: merge **exactly the directories you need** into one session. The AI can access all member directories simultaneously, yet the scope stays precise and controlled — it sees only the directories you chose, never anything outside them.
+**Union Workspaces** lets you merge **exactly the directories you need** into a single session. The AI reaches all of them at once, while the scope stays tight — it sees only what you picked, nothing outside it.
 
 ## Introduction
 
