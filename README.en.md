@@ -35,7 +35,7 @@ Mount just one directory and the AI is blind to the others — the task simply f
 
   | Preset | Description |
   |---|---|
-  | `workspace-write` (default) | Read/write all member directories (via `uw_write`/`uw_edit` tools) |
+  | `workspace-write` (default) | Read/write/delete/move all member directories (via `uw_write`/`uw_edit`/`uw_delete`/`uw_move` tools) |
   | `danger-full-access` | Read/write everywhere (unrestricted) |
 
 - **Sidebar integration** — Click the ⛓ icon in the sidebar footer to open the management panel.
@@ -45,7 +45,7 @@ Mount just one directory and the AI is blind to the others — the task simply f
 - **Quick upgrade** — Upgrade an existing session via the `/uw` command or the header button.
 - **Persistent storage** — Union definitions survive restart (`~/.dsh/union-workspaces.json`).
 - **Auto-match** — Sessions opened from the sidebar are auto-matched to a union by workspace title.
-- **Member directory tools** — The plugin registers `uw_read`, `uw_write`, and `uw_edit` tools for reading/writing files in member directories, bypassing the sandbox single-root restriction. All member directories are readable and writable.
+- **Member directory tools** — The plugin registers `uw_read`, `uw_write`, `uw_edit`, `uw_delete`, and `uw_move` tools for reading, writing, deleting, and moving files in member directories, bypassing the sandbox single-root restriction. All member directories are readable, writable, deletable, and movable.
 
 ## Installation
 
@@ -103,7 +103,7 @@ After installation, your `cordis.patch.yml` should include the plugin row:
 3. After creation, the workspace appears in the sidebar.
 4. Click the workspace in the sidebar to open a new session — it will be auto-marked as a union.
 5. Click the ⛓ button in the session header to expand the member directory file browser.
-6. The AI agent can use the `uw_read` / `uw_write` / `uw_edit` tools to read and write files in member directories directly (the standard `read` / `write` / `edit` tools are restricted to the primary workspace root by the sandbox).
+6. The AI agent can use the `uw_read`, `uw_write`, `uw_edit`, `uw_delete`, and `uw_move` tools to read, write, delete, and move files in member directories directly (the standard `read`/`write`/`edit` tools are restricted to the primary workspace root by the sandbox).
 
 ## Development
 

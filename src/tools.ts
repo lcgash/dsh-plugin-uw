@@ -21,6 +21,7 @@ import { defineTool } from '@deepseek-ai/dsh-tools'
 import type { ToolRunContext } from '@deepseek-ai/dsh-tools'
 import type { ContentBlock } from '@deepseek-ai/dsh-llm'
 import { realpathSync } from 'node:fs'
+import { rename, unlink } from 'node:fs/promises'
 import type { FileSystem } from './host-types.ts'
 import type { Union } from './protocol.ts'
 import type { UnionStoreBackend } from './store.ts'
@@ -142,6 +143,16 @@ export function applyUnionTools(ctx: Context, store: UnionStoreBackend, fs: File
       name: 'tool:uw_edit',
       order: 102,
       text: 'Use the `uw_edit` tool to edit files inside member directories of a union workspace. All member directories are editable via `uw_edit` under both presets (the tool validates the target is inside a member). Only use `uw_edit` when the target path is inside a member directory — for the primary workspace root the standard `edit` tool is sufficient.',
+    })
+    systemPrompt.section({
+      name: 'tool:uw_delete',
+      order: 102,
+      text: 'Use the `uw_delete` tool to delete files inside member directories of a union workspace. All member directories are deletable via `uw_delete` under both presets (the tool validates the target is inside a member). Only use `uw_delete` when the target path is inside a member directory — for the primary workspace root the standard `write`/`edit` (with empty content) should be preferred.',
+    })
+    systemPrompt.section({
+      name: 'tool:uw_move',
+      order: 102,
+      text: 'Use the `uw_move` tool to move or rename files inside member directories of a union workspace. All member directories support move/rename via `uw_move` under both presets (the tool validates both source and destination are inside members). Only use `uw_move` when the target paths are inside member directories.',
     })
   }
 
@@ -272,6 +283,107 @@ export function applyUnionTools(ctx: Context, store: UnionStoreBackend, fs: File
         { mode: 'danger-full-access', workspaceRoot: '/' },
       )
       return { path: target.displayPath, before: outcome.before, after: outcome.after }
+    },
+  }))
+
+  // ---- uw_delete: delete a file inside a member directory ----
+  tools.register(defineTool({
+    name: 'uw_delete',
+    description: 'Delete a file inside a member directory of the current union workspace. All member directories are deletable under both presets. Only use `uw_delete` when the target path is inside a member directory — for the primary workspace root, prefer the standard `write`/`edit` (with empty content).',
+    parameters: {
+      file_path: { type: 'string', required: true, description: 'Path to delete, absolute or relative to the current session cwd.' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          path: { type: 'string', required: true },
+        },
+      },
+      render: (args, value) => text([`Deleted file: ${value.path}`]),
+    },
+    async execute(args: { file_path: string }, exec: ToolRunContext) {
+      const union = unionFor(store, exec)
+      if (union === null) throw new Error('uw_delete: this session is not a union workspace')
+      const member = memberForPath(union, args.file_path)
+      if (member === null) {
+        throw new Error(
+          `uw_delete: "${args.file_path}" is outside every member directory of union "${union.title}". `
+          + `Allowed member directories:\n${union.members.map((m) => `  - ${m}`).join('\n')}`,
+        )
+      }
+      if (!writePolicyFor(union).allowWrite(member.index)) {
+        throw new Error(
+          `uw_delete: "${args.file_path}" is in member directory "${member.path}", which is read-only under the `
+          + `"${union.preset}" preset. Switch the union to danger-full-access to enable deletes in this member.`,
+        )
+      }
+      const cwd = exec.agent?.session.header.cwd
+      const target = await fs.resolve(args.file_path, cwd === undefined ? undefined : { cwd })
+      // The tool already validated containment in a member directory, so the
+      // mutation bypasses the DSH sandbox fence entirely.
+      await unlink(fs.processPath(target))
+      return { path: target.displayPath }
+    },
+  }))
+
+  // ---- uw_move: move or rename a file inside member directories ----
+  tools.register(defineTool({
+    name: 'uw_move',
+    description: 'Move or rename a file inside a member directory of the current union workspace. Both source and destination must be inside member directories. All member directories support move/rename under both presets.',
+    parameters: {
+      source: { type: 'string', required: true, description: 'Current path to move from, absolute or relative to the current session cwd.' },
+      destination: { type: 'string', required: true, description: 'Target path to move to, absolute or relative to the current session cwd.' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          source: { type: 'string', required: true },
+          destination: { type: 'string', required: true },
+        },
+      },
+      render: (args, value) => text([`Moved: ${value.source} -> ${value.destination}`]),
+    },
+    async execute(args: { source: string; destination: string }, exec: ToolRunContext) {
+      const union = unionFor(store, exec)
+      if (union === null) throw new Error('uw_move: this session is not a union workspace')
+      const cwd = exec.agent?.session.header.cwd
+      const srcTarget = await fs.resolve(args.source, cwd === undefined ? undefined : { cwd })
+      const dstTarget = await fs.resolve(args.destination, cwd === undefined ? undefined : { cwd })
+
+      const srcMember = memberForPath(union, fs.processPath(srcTarget))
+      if (srcMember === null) {
+        throw new Error(
+          `uw_move: source "${args.source}" is outside every member directory of union "${union.title}". `
+          + `Allowed member directories:\n${union.members.map((m) => `  - ${m}`).join('\n')}`,
+        )
+      }
+      const dstMember = memberForPath(union, fs.processPath(dstTarget))
+      if (dstMember === null) {
+        throw new Error(
+          `uw_move: destination "${args.destination}" is outside every member directory of union "${union.title}". `
+          + `Allowed member directories:\n${union.members.map((m) => `  - ${m}`).join('\n')}`,
+        )
+      }
+      if (!writePolicyFor(union).allowWrite(srcMember.index)) {
+        throw new Error(
+          `uw_move: source "${args.source}" is in member directory "${srcMember.path}", which is read-only under the `
+          + `"${union.preset}" preset. Switch the union to danger-full-access to enable moves in this member.`,
+        )
+      }
+      if (!writePolicyFor(union).allowWrite(dstMember.index)) {
+        throw new Error(
+          `uw_move: destination "${args.destination}" is in member directory "${dstMember.path}", which is read-only under the `
+          + `"${union.preset}" preset. Switch the union to danger-full-access to enable moves in this member.`,
+        )
+      }
+      // The tool already validated containment in a member directory, so the
+      // mutation bypasses the DSH sandbox fence entirely.
+      await rename(fs.processPath(srcTarget), fs.processPath(dstTarget))
+      return { source: srcTarget.displayPath, destination: dstTarget.displayPath }
     },
   }))
 }

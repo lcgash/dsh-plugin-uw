@@ -44,7 +44,7 @@ export const Config: z<Config> = z.object({
 const DEFAULT_ANNOUNCE = true
 const SECTION_ORDER = 400
 
-export const UNION_GUIDANCE = '本机已安装 dsh-union-workspace 插件(联合工作区):在设置页或会话输入 / 选中「uw」可把多个目录合并进一个会话(主目录+成员目录,至少 2 个);已联合的会话会应用所选权限预设,并可在会话头部右侧打开成员目录文件列表面板。读/写成员目录时请使用 uw_read / uw_write / uw_edit 工具(标准 read/write/edit 工具受沙箱限制只能访问主目录);其中 uw_write / uw_edit 可读写所有成员目录。用户提到「联合工作区 / 成员目录 / uw」时即指本插件,请据此协作。'
+export const UNION_GUIDANCE = '本机已安装 dsh-union-workspace 插件(联合工作区):在设置页或会话输入 / 选中「uw」可把多个目录合并进一个会话(主目录+成员目录,至少 2 个);已联合的会话会应用所选权限预设,并可在会话头部右侧打开成员目录文件列表面板。读/写成员目录时请使用 uw_read / uw_write / uw_edit / uw_delete / uw_move 工具(标准 read/write/edit 工具受沙箱限制只能访问主目录);其中 uw_write / uw_edit / uw_delete / uw_move 可读写所有成员目录。用户提到「联合工作区 / 成员目录 / uw」时即指本插件,请据此协作。'
 
 function isLoopbackRequest(req: IncomingMessage): boolean {
   const remote = req.socket.remoteAddress
@@ -111,9 +111,9 @@ function applyImpl(ctx: Context, config?: Config): void {
                   return '本机已安装 dsh-union-workspace 插件(联合工作区)，当前会话已启用联合工作区「'
                     + union.title + '」。成员目录:\n'
                     + union.members.map((m, i) => `  ${i === 0 ? '[主目录]' : '[成员]'} ${m}`).join('\n')
-                    + '\n\n读/写成员目录时请使用 uw_read / uw_write / uw_edit 工具'
+                    + '\n\n读/写成员目录时请使用 uw_read / uw_write / uw_edit / uw_delete / uw_move 工具'
                     + '(标准 read/write/edit 工具受沙箱限制只能访问主目录);'
-                    + '其中 uw_write / uw_edit 可读写所有成员目录。'
+                    + '其中 uw_write / uw_edit / uw_delete / uw_move 可读写所有成员目录。'
                     + '用户提到「联合工作区 / 成员目录 / uw」时即指本插件,请据此协作。'
                 }
               }
