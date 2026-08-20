@@ -8,6 +8,17 @@
 
 ---
 
+## The problem it solves
+
+When working on a project that spans multiple directories in DSH, you often face a dilemma:
+
+- **You want to give the AI a restricted directory scope** — you don't want it to roam freely through unrelated directories (like your whole `~/Projects`), and you don't want to create separate sessions for each subdirectory and switch between them.
+- **But you genuinely need simultaneous access to several directories** — a typical case is **full-stack development**: frontend repo, backend repo, and a shared types/protocols repo living in different places. The AI needs to read and write across all of them to complete a single cross-stack change.
+
+Mount just one directory and the AI can't see the other repos, so cross-stack tasks fail. Mount a huge directory (e.g. your whole home) and you get **context explosion** — tool scans and file searches spread across countless irrelevant files, wasting tokens, degrading answer quality, and granting far more directory access than needed.
+
+**Union Workspaces** is built for this exact pain point: merge **exactly the directories you need** into one session. The AI can access all member directories simultaneously, yet the scope stays precise and controlled — it sees only the directories you chose, never anything outside them.
+
 ## Introduction
 
 `dsh-plugin-uw` (Union Workspaces) lets you merge multiple directories into one session in the DSH Web GUI. A **primary** directory plus one or more **member** directories form a **union workspace**, giving the AI agent simultaneous access to all member directories.
