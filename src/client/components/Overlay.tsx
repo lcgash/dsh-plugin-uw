@@ -31,6 +31,8 @@ interface CreateState {
   busy: boolean
   notice: string
   noticeErr: boolean
+  /** True after the user has manually edited the name field. */
+  nameTouched: boolean
 }
 
 const initialCreate: CreateState = {
@@ -43,6 +45,7 @@ const initialCreate: CreateState = {
   busy: false,
   notice: '',
   noticeErr: false,
+  nameTouched: false,
 }
 
 function baseName(path: string): string {
@@ -96,7 +99,7 @@ export function Overlay(_props: OverlayProps): ReturnType<typeof h> | null {
       const next = [...create.members, p]
       patch({ members: next, notice: '', noticeErr: false })
       const seg = baseName(p)
-      if (seg && !create.name.includes(seg)) patch({ name: (create.name || '') + '+' + seg })
+      if (seg && !create.nameTouched) patch({ name: (create.name || '') + '+' + seg })
     } catch (err) {
       patch({ notice: tt('overlay.pickFailed', { error: String(err) }), noticeErr: true })
     }
@@ -110,7 +113,7 @@ export function Overlay(_props: OverlayProps): ReturnType<typeof h> | null {
     const next = [...create.members, p]
     patch({ members: next, manualPath: '', notice: '', noticeErr: false })
     const seg = baseName(p)
-    if (seg && !create.name.includes(seg)) patch({ name: (create.name || '') + '+' + seg })
+    if (seg && !create.nameTouched) patch({ name: (create.name || '') + '+' + seg })
   }
 
   const createUnion = async (): Promise<void> => {
@@ -281,7 +284,7 @@ export function Overlay(_props: OverlayProps): ReturnType<typeof h> | null {
       h('label', { className: css.fieldLabel }, tt('overlay.name')),
       h('input', {
         className: css.input, value: create.name, placeholder: tt('overlay.namePlaceholder'),
-        onChange: (ev: { target: { value: string } }) => patch({ name: ev.target.value }),
+        onChange: (ev: { target: { value: string } }) => patch({ name: ev.target.value, nameTouched: true }),
       })),
     h('div', { className: css.field },
       h('label', { className: css.fieldLabel }, tt('overlay.members')),

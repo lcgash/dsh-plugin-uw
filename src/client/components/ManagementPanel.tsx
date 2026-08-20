@@ -24,6 +24,8 @@ interface UnionFormState {
   busy: boolean
   notice: string
   noticeErr: boolean
+  /** True after the user has manually edited the title field. */
+  titleTouched: boolean
 }
 
 const emptyForm = (): UnionFormState => ({
@@ -34,6 +36,7 @@ const emptyForm = (): UnionFormState => ({
   busy: false,
   notice: '',
   noticeErr: false,
+  titleTouched: false,
 })
 
 function baseName(path: string): string {
@@ -257,7 +260,7 @@ export function ManagementPanel(props: ManagementPanelProps): ReturnType<typeof 
       if (err) { patchForm({ notice: tt(err.key, err.values), noticeErr: true }); return }
       patchForm({ members: [...form.members, p], notice: '', noticeErr: false })
       const seg = baseName(p)
-      if (seg && !form.title.includes(seg)) patchForm({ title: (form.title || '') + '+' + seg })
+      if (seg && !form.titleTouched) patchForm({ title: (form.title || '') + '+' + seg })
     } catch (err) {
       patchForm({ notice: tt('settings.pickerFailed', { error: String(err) }), noticeErr: true })
     }
@@ -270,7 +273,7 @@ export function ManagementPanel(props: ManagementPanelProps): ReturnType<typeof 
     if (err) { patchForm({ notice: tt(err.key, err.values), noticeErr: true }); return }
     patchForm({ members: [...form.members, p], manualPath: '', notice: '', noticeErr: false })
     const seg = baseName(p)
-    if (seg && !form.title.includes(seg)) patchForm({ title: (form.title || '') + '+' + seg })
+    if (seg && !form.titleTouched) patchForm({ title: (form.title || '') + '+' + seg })
   }
 
   const removeMember = (i: number): void => {
@@ -317,7 +320,7 @@ export function ManagementPanel(props: ManagementPanelProps): ReturnType<typeof 
         ),
         h('div', { className: css.field },
           h('label', { className: css.fieldLabel }, tt('overlay.name')),
-          h('input', { className: css.input, value: form.title, placeholder: tt('overlay.namePlaceholder'), onChange: (ev: { target: { value: string } }) => patchForm({ title: ev.target.value }) }),
+          h('input', { className: css.input, value: form.title, placeholder: tt('overlay.namePlaceholder'), onChange: (ev: { target: { value: string } }) => patchForm({ title: ev.target.value, titleTouched: true }) }),
         ),
         h('div', { className: css.field },
           h('label', { className: css.fieldLabel }, tt('overlay.members')),
