@@ -262,12 +262,12 @@ export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
           ? new Set(body.ignoreDirs as string[])
           : new Set(['node_modules', '.git', '.svn', '.hg', '.DS_Store', '__pycache__', '.dsh-union'])
         const files: SearchFileEntry[] = []
-        const queue: { path: string; memberIndex: number; memberPath: string }[] = []
+        const queue: { path: string; relative: string; memberIndex: number; memberPath: string }[] = []
         let truncated = false
 
         // Seed the queue with member directories
         for (let i = 0; i < union.members.length; i++) {
-          queue.push({ path: union.members[i], memberIndex: i, memberPath: union.members[i] })
+          queue.push({ path: union.members[i], relative: '', memberIndex: i, memberPath: union.members[i] })
         }
 
         try {
@@ -286,12 +286,13 @@ export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
                   break
                 }
                 const child = task.path + '/' + dirent.name
+                const childRelative = task.relative === '' ? dirent.name : task.relative + '/' + dirent.name
                 if (dirent.isDirectory()) {
                   if (ignoreDirs.has(dirent.name)) continue
-                  files.push({ path: child, relative: dirent.name, memberIndex: task.memberIndex, memberPath: task.memberPath, kind: 'dir' })
-                  queue.push({ path: child, memberIndex: task.memberIndex, memberPath: task.memberPath })
+                  files.push({ path: child, relative: childRelative, memberIndex: task.memberIndex, memberPath: task.memberPath, kind: 'dir' })
+                  queue.push({ path: child, relative: childRelative, memberIndex: task.memberIndex, memberPath: task.memberPath })
                 } else if (dirent.isFile()) {
-                  files.push({ path: child, relative: dirent.name, memberIndex: task.memberIndex, memberPath: task.memberPath, kind: 'file' })
+                  files.push({ path: child, relative: childRelative, memberIndex: task.memberIndex, memberPath: task.memberPath, kind: 'file' })
                 }
               }
             } finally {

@@ -64,14 +64,20 @@ function rankFiles(files: readonly SearchFileEntry[], query: string): readonly S
   const scored: { file: SearchFileEntry; score: number }[] = []
   for (const file of files) {
     const rel = file.relative.toLowerCase()
-    // Prefix match on the full relative path
-    if (rel === q) { scored.push({ file, score: 0 }); continue }
-    if (rel.startsWith(q)) { scored.push({ file, score: 1 }); continue }
+    const display = displayPath(file).toLowerCase()
+    // Prefix match on display path (member-basename/path)
+    if (display === q) { scored.push({ file, score: 0 }); continue }
+    if (display.startsWith(q)) { scored.push({ file, score: 1 }); continue }
+    // Prefix match on the member-relative path
+    if (rel === q) { scored.push({ file, score: 2 }); continue }
+    if (rel.startsWith(q)) { scored.push({ file, score: 3 }); continue }
     // Basename prefix match
     const base = basenameOf(rel).toLowerCase()
-    if (base.startsWith(q)) { scored.push({ file, score: 2 }); continue }
-    // Substring match
-    if (rel.includes(q)) { scored.push({ file, score: 3 }); continue }
+    if (base.startsWith(q)) { scored.push({ file, score: 4 }); continue }
+    // Substring match on display path
+    if (display.includes(q)) { scored.push({ file, score: 5 }); continue }
+    // Substring match on relative path
+    if (rel.includes(q)) { scored.push({ file, score: 6 }); continue }
   }
   scored.sort((a, b) => a.score - b.score || a.file.relative.localeCompare(b.file.relative))
   return scored.map(s => s.file)
