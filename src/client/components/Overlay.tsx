@@ -9,6 +9,7 @@
  */
 import { createElement as h, useEffect, useState } from 'react'
 import type { Union } from '../../protocol.ts'
+import { baseName as pathBaseName } from '../../path-utils.ts'
 import { openMarkedUnion, runtime } from '../runtime.ts'
 import { findMatchingUnion, memberError, unionStore, useUnionStore, type EditUnion } from '../store.ts'
 import css from '../styles/common.module.css'
@@ -49,7 +50,7 @@ const initialCreate: CreateState = {
 }
 
 function baseName(path: string): string {
-  return path.replace(/\/+$/, '').split('/').pop() ?? 'workspace'
+  return pathBaseName(path) || 'workspace'
 }
 
 export function Overlay(_props: OverlayProps): ReturnType<typeof h> | null {

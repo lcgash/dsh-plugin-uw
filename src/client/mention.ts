@@ -11,6 +11,7 @@ import type { InputTriggerCandidate, InputTriggerSource } from '@deepseek-ai/dsh
 import type { SessionId, ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import { runtime } from './runtime.ts'
 import type { SearchFileEntry } from '../protocol.ts'
+import { baseName as pathBaseName, dirName as pathDirName } from '../path-utils.ts'
 
 /** Extend the candidate type with a stable value for onPick lookup. */
 declare module '@deepseek-ai/dsh-client-ui-input-trigger/client' {
@@ -45,16 +46,14 @@ function escapeHtml(s: string): string {
   return s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
 }
 
-/** Basename of a /-separated path. */
+/** Basename of a path (works for both `/` and `\` separators). */
 function basenameOf(path: string): string {
-  const idx = path.lastIndexOf('/')
-  return idx >= 0 ? path.slice(idx + 1) : path
+  return pathBaseName(path)
 }
 
-/** Dirname of a /-separated path. */
+/** Dirname of a path (works for both `/` and `\` separators). */
 function dirnameOf(path: string): string {
-  const idx = path.lastIndexOf('/')
-  return idx >= 0 ? path.slice(0, idx) : ''
+  return pathDirName(path)
 }
 
 /** Rank files by query relevance (prefix match > substring match > alphabetical). */

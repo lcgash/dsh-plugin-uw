@@ -5,6 +5,7 @@
  */
 import { useEffect, useState } from 'react'
 import type { Union } from '../protocol.ts'
+import { isUnderPath } from '../path-utils.ts'
 
 export type OverlayMode = 'normal' | 'quick' | 'members'
 
@@ -116,8 +117,9 @@ export function memberError(existing: readonly string[], path: string): MemberEr
   for (const m of existing) {
     const nm = normPath(m)
     if (nm === p) return { key: 'settings.memberDup', values: { path: p } }
-    if (p.startsWith(nm + '/')) return { key: 'settings.memberNestedOf', values: { path: p, other: nm } }
-    if (nm.startsWith(p + '/')) return { key: 'settings.memberParentOf', values: { path: p, other: nm } }
+    // Compare with separators normalized so both `\` and `/` work on Windows.
+    if (isUnderPath(p, nm)) return { key: 'settings.memberNestedOf', values: { path: p, other: nm } }
+    if (isUnderPath(nm, p)) return { key: 'settings.memberParentOf', values: { path: p, other: nm } }
   }
   return null
 }

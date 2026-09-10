@@ -11,6 +11,7 @@
 import type { FileSystem } from './host-types.ts'
 import type { ShellExecutor } from './host-types.ts'
 import type { Union, UnionStore } from './protocol.ts'
+import { isUnderPath, baseName } from './path-utils.ts'
 
 /** Trailing-slash normalization for path comparisons. */
 function norm(path: string): string {
@@ -23,7 +24,7 @@ function cleanMembers(members: readonly string[] | undefined): string[] {
   for (const raw of members ?? []) {
     const p = norm(raw)
     if (!p || out.includes(p)) continue
-    if (out.some((m) => p.startsWith(m + '/') || m.startsWith(p + '/'))) continue
+    if (out.some((m) => isUnderPath(p, m) || isUnderPath(m, p))) continue
     out.push(p)
   }
   return out
@@ -36,7 +37,7 @@ export function sanitizeUnion(raw: unknown): Union | null {
   const members = cleanMembers(Array.isArray(u.members) ? u.members as string[] : undefined)
   if (members.length < 2) return null
   const id = String(u.id ?? 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6))
-  const title = String(u.title ?? members[0].split('/').pop() ?? 'workspace')
+  const title = String(u.title ?? (baseName(members[0]) || 'workspace'))
   const preset = u.preset === 'workspace-write' ? u.preset : 'danger-full-access'
   const workspaceId = typeof u.workspaceId === 'string' && u.workspaceId.length > 0 ? u.workspaceId : undefined
   return { id, title, members, preset, ...(workspaceId ? { workspaceId } : {}) }

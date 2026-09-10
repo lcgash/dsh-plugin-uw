@@ -23,6 +23,7 @@ import type { ContentBlock } from '@deepseek-ai/dsh-llm'
 import { realpathSync } from 'node:fs'
 import { rename, unlink } from 'node:fs/promises'
 import type { FileSystem } from './host-types.ts'
+import { isUnderPath } from './path-utils.ts'
 import type { Union } from './protocol.ts'
 import type { UnionStoreBackend } from './store.ts'
 
@@ -43,17 +44,9 @@ function writePolicyFor(union: Union): UnionWritePolicy {
   return { allowWrite: () => true }
 }
 
-/** Normalize a path (remove trailing slashes). */
-function norm(path: string): string {
-  return path.replace(/\/+$/, '')
-}
-
-/** Whether `path` is `root` or a descendant of it (lexical, after trailing-slash normalization). */
+/** Whether `path` is `root` or a descendant of it (platform-aware). */
 function isUnder(path: string, root: string): boolean {
-  const p = norm(path)
-  const r = norm(root)
-  if (p === r) return true
-  return p.startsWith(r + '/')
+  return isUnderPath(path, root)
 }
 
 /** The union attached to the calling session, or null when not a union session. */

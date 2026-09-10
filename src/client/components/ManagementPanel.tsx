@@ -5,6 +5,7 @@
  */
 import { createElement as h, useEffect, useState } from 'react'
 import type { Union } from '../../protocol.ts'
+import { baseName as pathBaseName } from '../../path-utils.ts'
 import { openMarkedUnion, runtime } from '../runtime.ts'
 import { findMatchingUnion, memberError, useUnionStore } from '../store.ts'
 import { tt } from '../translate.ts'
@@ -40,7 +41,7 @@ const emptyForm = (): UnionFormState => ({
 })
 
 function baseName(path: string): string {
-  return path.replace(/\/+$/, '').split('/').pop() ?? 'workspace'
+  return pathBaseName(path) || 'workspace'
 }
 
 /** Expandable editor for one union. */

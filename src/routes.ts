@@ -12,6 +12,7 @@ import type { Session } from '@deepseek-ai/dsh-session'
 import type { Workspace, WorkspaceRegistry } from '@deepseek-ai/dsh-workspace'
 import type { WebRoute } from '@deepseek-ai/dsh-host-webserver'
 import { UW_API, type FileEntry, type SearchFileEntry, type SearchFilesResult, type Union } from './protocol.ts'
+import { isUnderPath } from './path-utils.ts'
 import type { UnionStoreBackend } from './store.ts'
 
 /** One JSON response. */
@@ -247,7 +248,7 @@ export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
             let memberIndex = -1
             let memberPath = ''
             for (let i = 0; i < union.members.length; i++) {
-              if (nd === union.members[i] || nd.startsWith(union.members[i] + '/')) {
+              if (isUnderPath(nd, union.members[i])) {
                 memberIndex = i
                 memberPath = union.members[i]
                 break
@@ -302,7 +303,7 @@ export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
         // Original behavior: list files in a single directory
         if (!dir) return writeJson(res, 400, { ok: false, error: '缺少目录参数' })
         const nd = norm(dir)
-        if (!union.members.some((m) => nd === m || nd.startsWith(m + '/'))) {
+        if (!union.members.some((m) => isUnderPath(nd, m))) {
           return writeJson(res, 400, { ok: false, error: '目录不在任何成员目录内' })
         }
         try {

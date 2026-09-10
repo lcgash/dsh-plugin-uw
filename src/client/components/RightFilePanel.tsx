@@ -14,6 +14,7 @@
 import { createElement as h } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FileEntry, Union } from '../../protocol.ts'
+import { baseName as pathBaseName } from '../../path-utils.ts'
 import { runtime } from '../runtime.ts'
 import { unionStore, useUnionStore } from '../store.ts'
 
@@ -42,7 +43,7 @@ function normPath(p: string): string {
 
 /** Get the basename of a path. */
 function baseName(p: string): string {
-  return normPath(p).split('/').pop() ?? p
+  return pathBaseName(p) || p
 }
 
 export function RightFilePanel(): ReturnType<typeof h> | null {
