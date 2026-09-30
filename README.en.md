@@ -121,7 +121,7 @@ npm run typecheck
 - **Host half** (`src/index.ts`) — runs in the DSH Node.js process, owns the union store (`~/.dsh/union-workspaces.json`), serves `/api/dsh-union-workspace/*` routes, and applies permission presets on session start.
 - **Client half** (`src/client/index.ts`) — runs in the web GUI, registers locale dictionaries, settings section, conversation header badge/buttons, the `/uw` command, and mounts the overlay dialog and files panel via DOM injection.
 - **Routes** (`src/routes.ts`) — REST API endpoints for listing, syncing, marking, and browsing union workspaces.
-- **Tools** (`src/tools.ts`) — Registers `uw_read`, `uw_write`, `uw_edit` model tools for reading/writing member directory files, bypassing the sandbox single-root restriction.
+- **Tools** (`src/tools.ts`) — Registers the `uw_read`, `uw_write`, `uw_edit`, `uw_delete`, and `uw_move` model tools for reading, writing, deleting, and moving member directory files, bypassing the sandbox single-root restriction.
 - **Store** (`src/store.ts`) — persistent file-based store with sanitization and migration support.
 
 ## License

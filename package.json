@@ -1,7 +1,7 @@
 {
   "name": "dsh-union-workspace",
   "description": "Union workspaces for the dsh web GUI: merge multiple directories into one session (primary + members), persist them under ~/.dsh/union-workspaces.json, apply a permission preset per union, browse member files in a right-side panel, and manage everything from a settings section and the /uw command. Hot-pluggable — mounted via ~/.dsh/cordis.patch.yml + a profile node_modules link, no dsh source changes.",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "type": "module",
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
@@ -21,6 +21,7 @@
     "./package.json": "./package.json"
   },
   "dsh": {
+    "manifestVersion": 1,
     "bundle": {
       "patch": "./cordis.patch.yml"
     },
@@ -33,7 +34,6 @@
         "@deepseek-ai/dsh-client-ui-input-trigger",
         "@deepseek-ai/dsh-client-ui-renderer",
         "@deepseek-ai/dsh-client-ui-settings",
-        "@deepseek-ai/dsh-client-ui-slots",
         "@deepseek-ai/dsh-client-ui-workspace"
       ],
       "platform": "web"
@@ -43,9 +43,7 @@
     "build": "tsc -p tsconfig.build.json && tsdown",
     "prepare": "tsdown",
     "watch": "tsdown --watch",
-    "typecheck": "tsc --noEmit",
-    "docs:check": "node scripts/verify-docs.mjs",
-    "docs:write-pair": "node scripts/verify-docs.mjs --write"
+    "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
     "react": "^18.2.0",
@@ -56,21 +54,21 @@
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "^4.0.4",
-    "@deepseek-ai/dsh-api-workspace-controller": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-client-locale": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-client-ui-commands": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-client-ui-conversation": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-client-ui-input-trigger": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-client-ui-renderer": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-client-ui-settings": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-client-ui-slots": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-client-ui-workspace": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-host-webserver": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-llm": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-session": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-system-prompt": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-tools": "0.1.7-rc.2",
-    "@deepseek-ai/dsh-workspace": "0.1.7-rc.2",
+    "@deepseek-ai/dsh-api-workspace-controller": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-locale": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-commands": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-conversation": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-input-trigger": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-renderer": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-settings": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-workspace": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-host-webserver": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-llm": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-session": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-system-prompt": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-tools": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-workspace": "0.2.0-rc.2",
     "@types/node": "^22.20.0",
     "@types/react": "~18.3.1",
     "@types/react-dom": "^18.3.5",
@@ -86,12 +84,11 @@
     "src",
     "cordis.patch.yml",
     "README.md",
-    "README.zh.md",
-    "README.i18n.yaml"
+    "README.en.md"
   ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lvchenguang/dsh-union-workspace.git"
+    "url": "https://github.com/lcgash/dsh-plugin-uw.git"
   }
 }

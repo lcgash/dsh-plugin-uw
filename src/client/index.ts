@@ -60,23 +60,21 @@ export const inject = ['slots', 'workspaces', 'uiWorkspace', 'locale', 'inputTri
  */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => {
-    const locale = ctx.get('locale') as { register: (ns: string, dicts: Record<string, Record<string, string>>) => () => void } | undefined
+    const locale = ctx.get('locale')
     if (locale !== undefined) return locale.register(NS, { zh, en })
     return () => {}
   }, 'union-workspace: dictionaries')
 
-  bindRuntime(ctx.workspaces, ctx.uiWorkspace, ctx.locale as never)
+  bindRuntime(ctx.workspaces, ctx.uiWorkspace, ctx.locale)
 
   // Settings section for union workspace management.
-  ctx.slots.inject('settings.section' as never, () => {
+  ctx.slots.inject('settings.section', () => {
     const unregister = ctx.slots.register({
       name: 'settings.section',
       id: 'union-workspace',
       order: 90,
       label: () => tt('sidebar.title'),
-    } as never, ((props: { close: () => void }) => {
-      return h(ManagementPanel, { close: props.close })
-    }) as never)
+    }, (props: { close: () => void }) => h(ManagementPanel, { close: props.close }))
     return () => { unregister() }
   })
 
@@ -87,7 +85,7 @@ export function apply(ctx: ClientContext): void {
       id: 'union-files-button',
       order: 10,
       label: () => tt('header.files'),
-    }, ((props: { sessionId: string }) => FilesHeaderAction({ sessionId: props.sessionId })) as never)
+    }, (props: { sessionId: string }) => FilesHeaderAction({ sessionId: props.sessionId }))
     return () => { unregisterFiles() }
   })
 
@@ -119,7 +117,7 @@ export function apply(ctx: ClientContext): void {
   }, 'union-workspace: right file panel')
 
   // The /uw command (client contribution, popupSelect shell).
-  const commandUi = ctx.get('commandUi') as { register: (c: unknown) => () => void } | undefined
+  const commandUi = ctx.get('commandUi')
   if (commandUi !== undefined) {
     ctx.effect(() => commandUi.register({
       name: 'uw',
@@ -179,7 +177,7 @@ export function apply(ctx: ClientContext): void {
   }
 
   // The @mention source for union workspace member files.
-  const inputTriggers = ctx.get('inputTriggers') as { registerSource: (src: unknown) => () => void } | undefined
+  const inputTriggers = ctx.get('inputTriggers')
   if (inputTriggers !== undefined) {
     ctx.effect(() => {
       const source = createUnionMentionSource(ctx)

@@ -121,7 +121,7 @@ npm run typecheck
 - **Host 端**（`src/index.ts`）— 运行在 DSH Node.js 进程中，持有联合工作区存储（`~/.dsh/union-workspaces.json`），提供 `/api/dsh-union-workspace/*` 路由，并在会话启动时应用权限预设。
 - **Client 端**（`src/client/index.ts`）— 运行在 Web GUI 中，注册本地化字典、设置页面、会话头部按钮、`/uw` 命令，并通过 DOM 注入挂载覆盖层和文件面板。
 - **路由**（`src/routes.ts`）— REST API 端点，用于列出、同步、标记和浏览联合工作区。
-- **工具**（`src/tools.ts`）— 注册 `uw_read`、`uw_write`、`uw_edit` 三个模型工具，用于读写成员目录文件，绕过沙箱的单根限制。
+- **工具**（`src/tools.ts`）— 注册 `uw_read`、`uw_write`、`uw_edit`、`uw_delete`、`uw_move` 五个模型工具，用于读写、删除、移动成员目录文件，绕过沙箱的单根限制。
 - **存储**（`src/store.ts`）— 基于文件的持久化存储，支持数据清洗和迁移。
 
 ## License
