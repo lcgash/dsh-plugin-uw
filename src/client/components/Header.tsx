@@ -32,7 +32,20 @@ export function FilesHeaderAction(props: SessionHeaderProps): ReturnType<typeof 
   useEffect(() => {
     let alive = true
     runtime.api.status(sessionId).then((r) => {
-      if (alive) setUnion(r?.union ?? null)
+      if (!alive) return
+      const u = r?.union ?? null
+      setUnion(u)
+      // Selecting a session is a view-owner concern in 0.1.7 (the sessions
+      // service no longer exposes a global `current`), and this session-scoped
+      // header slot is what knows which session is on screen — so it drives
+      // the right panel's binding. Claim only an unbound panel and release
+      // only a panel bound to THIS session, so co-mounted header actions
+      // cannot steal each other's panel.
+      if (u !== null) {
+        if (unionStore.filesSessionId === null) unionStore.setFiles(sessionId)
+      } else if (unionStore.filesSessionId === sessionId) {
+        unionStore.closeFiles()
+      }
     }).catch(() => { if (alive) setUnion(null) })
     return () => { alive = false }
   }, [sessionId])

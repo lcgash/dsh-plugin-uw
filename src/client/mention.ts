@@ -8,7 +8,8 @@
  * then use `uw_read`/`uw_write`/`uw_edit` to access the file.
  */
 import type { InputTriggerCandidate, InputTriggerSource } from '@deepseek-ai/dsh-client-ui-input-trigger/client'
-import type { SessionId, ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
+import type { SessionId } from '@deepseek-ai/dsh-session/types'
+import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import { runtime } from './runtime.ts'
 import type { SearchFileEntry } from '../protocol.ts'
 import { baseName as pathBaseName, dirName as pathDirName } from '../path-utils.ts'

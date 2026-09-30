@@ -91,9 +91,9 @@ export function Overlay(_props: OverlayProps): ReturnType<typeof h> | null {
   }
 
   const addPicked = async (): Promise<void> => {
-    if (runtime.workspaces === undefined) { patch({ notice: tt('overlay.pickFailed', { error: 'no workspaces service' }), noticeErr: true }); return }
+    if (runtime.uiWorkspace === undefined) { patch({ notice: tt('overlay.pickFailed', { error: 'no workspace navigation service' }), noticeErr: true }); return }
     try {
-      const p = await runtime.workspaces.pickDirectory()
+      const p = await runtime.uiWorkspace.pickDirectory()
       if (!p) return
       const err = memberError(create.members, p)
       if (err) { patch({ notice: tt(err.key, err.values), noticeErr: true }); return }
@@ -309,9 +309,9 @@ export function Overlay(_props: OverlayProps): ReturnType<typeof h> | null {
         h('button', {
           type: 'button', className: css.btn,
           onClick: () => void (async () => {
-            if (runtime.workspaces === undefined) return
+            if (runtime.uiWorkspace === undefined) return
             try {
-              const p = await runtime.workspaces.pickDirectory()
+              const p = await runtime.uiWorkspace.pickDirectory()
               if (p) patch({ plainPath: p })
             } catch (err) { patch({ notice: tt('overlay.pickFailed', { error: String(err) }), noticeErr: true }) }
           })(),

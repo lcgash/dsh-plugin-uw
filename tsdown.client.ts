@@ -19,10 +19,10 @@ import { transform } from 'lightningcss'
 /** The module specifiers the shell shares into the frozen module table. */
 const PLATFORM_MODULES = [
   'react', 'react/jsx-runtime', 'react-dom', 'react-dom/client', '@deepseek-ai/cordis',
+  '@deepseek-ai/dsh-client-store',
   '@deepseek-ai/dsh-client-ui-slots',
-  '@deepseek-ai/dsh-client-web-react',
   '@deepseek-ai/dsh-client-ui-primitives',
-  '@deepseek-ai/dsh-client-schema-form',
+  '@deepseek-ai/dsh-client-ui-dockkit',
 ] as const
 
 /**
@@ -42,7 +42,6 @@ const GENERATED_REMOTE = /^@deepseek-ai\/dsh-[a-z0-9]+(?:-[a-z0-9]+)*\/remote$/
 /** Externals resolved from the loader module table. */
 const CLIENT_EXTERNALS: readonly string[] = [
   ...PLATFORM_MODULES,
-  '@deepseek-ai/dsh-client-runtime/client',
 ]
 
 /** Package root (this file lives at the package root). */

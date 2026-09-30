@@ -57,7 +57,8 @@ export class UnionStoreBackend {
   async discoverStorePath(): Promise<void> {
     try {
       const spec = this.shell.resolve({ command: 'printf %s "$HOME"' })
-      const res = await this.shell.run(spec)
+      const execution = await this.shell.execute(spec)
+      const res = await execution.result()
       const home = (res.stdout.text ?? '').trim()
       if (home) this.storePath = home + '/.dsh/union-workspaces.json'
     } catch (error) {
@@ -82,7 +83,9 @@ export class UnionStoreBackend {
           marks: typeof p.marks === 'object' && p.marks !== null ? p.marks as Record<string, string> : {},
         }
       }
-    } catch {}
+    } catch (error) {
+      console.error('[union-workspace] load store failed:', String(error))
+    }
   }
 
   /** Persist the store under `~/.dsh/` with an explicit full-access policy. */

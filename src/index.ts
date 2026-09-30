@@ -156,7 +156,7 @@ function applyImpl(ctx: Context, config?: Config): void {
   }
   sync()
 
-  ctx.events.on('agent/session-start', (payload: unknown) => {
+  ctx.events.on('agent/created', (payload: unknown) => {
     try {
       const p = payload as { agent?: { session?: { id: string; header?: { cwd?: string } } } }
       const agentSession = p?.agent?.session
@@ -169,7 +169,7 @@ function applyImpl(ctx: Context, config?: Config): void {
         // workspace path, then matching that workspace to a union by its stored
         // workspaceId (or title as fallback for legacy unions).
         // We match by cwd rather than by sessionIds because the
-        // agent/session-start event fires BEFORE the session is attached to the
+        // agent/created event fires BEFORE the session is attached to the
         // workspace (the API proxy calls attachSession after ensureSession).
         const cwd = agentSession.header?.cwd
         if (cwd) {

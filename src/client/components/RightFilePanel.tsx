@@ -28,14 +28,6 @@ interface TreeNode {
   error: string | null
 }
 
-/** Get the current active session id from the sessions list store. */
-function activeSessionId(): string | undefined {
-  const list = runtime.sessions?.list
-  if (list === undefined) return undefined
-  const snapshot = list.getSnapshot()
-  return snapshot.current
-}
-
 /** Normalize a path (remove trailing slash). */
 function normPath(p: string): string {
   return p.replace(/\/+$/, '')
@@ -49,17 +41,12 @@ function baseName(p: string): string {
 export function RightFilePanel(): ReturnType<typeof h> | null {
   useUnionStore()
 
-  // Track the active session.
-  const [sessionId, setSessionId] = useState<string | undefined>(activeSessionId)
-  useEffect(() => {
-    const list = runtime.sessions?.list
-    if (list === undefined) return
-    const fn = () => {
-      const snapshot = list.getSnapshot()
-      setSessionId(snapshot.current)
-    }
-    return list.subscribe(fn)
-  }, [])
+  // The panel is bound to the session whose header ⛓ button opened it.
+  // DSH 0.1.7 deleted the sessions service's global `current` selection (and
+  // `ISessions.open`), so the session now arrives from the session-scoped
+  // header slot, which owns selection, instead of a shared "active session"
+  // read.
+  const sessionId = unionStore.filesSessionId ?? undefined
 
   const [info, setInfo] = useState<Union | null>(null)
   const [roots, setRoots] = useState<TreeNode[]>([])

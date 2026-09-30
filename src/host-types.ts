@@ -55,7 +55,16 @@ export interface FsEditOutcome {
 /** Minimal ShellExecutor interface. */
 export interface ShellExecutor {
   resolve(request: { command: string }): ShellExecSpec
-  run(spec: ShellExecSpec): Promise<ShellRunResult>
+  execute(spec: ShellExecSpec): Promise<ShellExecution>
+}
+
+/**
+ * The handle `execute` returns. The foreground projection is `result()`;
+ * DSH 0.1.7 replaced the former `shell.run(spec)` one-shot with
+ * `execute(spec)` plus this `result()` await.
+ */
+export interface ShellExecution {
+  result(): Promise<ShellRunResult>
 }
 
 export interface ShellExecSpec {

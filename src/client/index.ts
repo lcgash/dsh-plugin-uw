@@ -12,19 +12,26 @@
  */
 import { createElement as h } from 'react'
 import { createRoot } from 'react-dom/client'
-import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
+import type { Context as ClientContext } from '@deepseek-ai/cordis'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale) and its
 // LocaleNamespaceMap merge table.
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 // Type-only: pulls the ui-slots register surface and the SlotMap/Locale
 // namespace merge tables.
 import type {} from '@deepseek-ai/dsh-client-ui-slots'
+// Type-only: pulls the ctx.slots service merge (renderer-owned registry).
+import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 // Type-only: pulls the conversation-surface SlotMap merge (header slots).
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 // Type-only: pulls the ctx.commandUi service merge.
 import type {} from '@deepseek-ai/dsh-client-ui-commands/client'
 // Type-only: pulls the ctx.inputTriggers service merge.
 import type {} from '@deepseek-ai/dsh-client-ui-input-trigger/client'
+// Type-only: pulls the ctx.workspaces service merge.
+import type {} from '@deepseek-ai/dsh-api-workspace-controller/client'
+// Type-only: pulls the ctx.uiWorkspace service merge (workspace navigation and
+// the Host directory picker).
+import type {} from '@deepseek-ai/dsh-client-ui-workspace/client'
 import { FilesHeaderAction } from './components/Header.tsx'
 import { ManagementPanel } from './components/ManagementPanel.tsx'
 import { Overlay } from './components/Overlay.tsx'
@@ -45,7 +52,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 }
 
 /** Required services (fiber inject waiting — the runtime must be up first). */
-export const inject = ['slots', 'sessions', 'workspaces', 'locale', 'inputTriggers']
+export const inject = ['slots', 'workspaces', 'uiWorkspace', 'locale', 'inputTriggers']
 
 /**
  * Mount the union-workspace browser half.
@@ -58,7 +65,7 @@ export function apply(ctx: ClientContext): void {
     return () => {}
   }, 'union-workspace: dictionaries')
 
-  bindRuntime(ctx.workspaces, ctx.sessions as never, ctx.locale as never)
+  bindRuntime(ctx.workspaces, ctx.uiWorkspace, ctx.locale as never)
 
   // Settings section for union workspace management.
   ctx.slots.inject('settings.section' as never, () => {
@@ -116,7 +123,9 @@ export function apply(ctx: ClientContext): void {
   if (commandUi !== undefined) {
     ctx.effect(() => commandUi.register({
       name: 'uw',
-      description: tt('cmd.description'),
+      // 0.1.7 made the menu row label/description lazy thunks and the runtime
+      // calls them; a plain string throws and takes the whole slash menu down.
+      description: () => tt('cmd.description'),
       available: () => true,
       ui: {
         kind: 'popupSelect',

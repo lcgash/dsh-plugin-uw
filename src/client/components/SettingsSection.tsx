@@ -61,13 +61,13 @@ export function SettingsSection(_props: SettingsSectionProps): ReturnType<typeof
     }
 
     const addPicked = async (): Promise<void> => {
-        if (runtime.workspaces === undefined) {
-            setNotice(tt('settings.pickerFailed', {error: 'no workspaces service'}));
+        if (runtime.uiWorkspace === undefined) {
+            setNotice(tt('settings.pickerFailed', {error: 'no workspace navigation service'}));
             setNoticeErr(true);
             return
         }
         try {
-            const p = await runtime.workspaces.pickDirectory()
+            const p = await runtime.uiWorkspace.pickDirectory()
             if (!p) return
             const err = memberError(members, p)
             if (err) {
@@ -146,13 +146,13 @@ export function SettingsSection(_props: SettingsSectionProps): ReturnType<typeof
     }
 
     const addUnionMember = async (u: Union): Promise<void> => {
-        if (runtime.workspaces === undefined) {
-            setNotice(tt('settings.pickerFailed', {error: 'no workspaces service'}));
+        if (runtime.uiWorkspace === undefined) {
+            setNotice(tt('settings.pickerFailed', {error: 'no workspace navigation service'}));
             setNoticeErr(true);
             return
         }
         try {
-            const p = await runtime.workspaces.pickDirectory()
+            const p = await runtime.uiWorkspace.pickDirectory()
             if (!p) return
             const err = memberError(u.members, p)
             if (err) {

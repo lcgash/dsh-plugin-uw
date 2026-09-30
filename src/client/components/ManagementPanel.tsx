@@ -80,9 +80,9 @@ function UnionEditor(props: { union: Union; onUpdate: (u: Union) => void; onDele
   }
 
   const addMemberFromPicker = async (): Promise<void> => {
-    if (runtime.workspaces === undefined) { setNotice(tt('settings.pickerFailed', { error: 'no workspaces service' })); setNoticeErr(true); return }
+    if (runtime.uiWorkspace === undefined) { setNotice(tt('settings.pickerFailed', { error: 'no workspace navigation service' })); setNoticeErr(true); return }
     try {
-      const p = await runtime.workspaces.pickDirectory()
+      const p = await runtime.uiWorkspace.pickDirectory()
       if (!p) return
       const err = memberError(members, p)
       if (err) { setNotice(tt(err.key, err.values)); setNoticeErr(true); return }
@@ -253,9 +253,9 @@ export function ManagementPanel(props: ManagementPanelProps): ReturnType<typeof 
   }
 
   const addMemberFromPicker = async (): Promise<void> => {
-    if (runtime.workspaces === undefined) { patchForm({ notice: tt('settings.pickerFailed', { error: 'no workspaces service' }), noticeErr: true }); return }
+    if (runtime.uiWorkspace === undefined) { patchForm({ notice: tt('settings.pickerFailed', { error: 'no workspace navigation service' }), noticeErr: true }); return }
     try {
-      const p = await runtime.workspaces.pickDirectory()
+      const p = await runtime.uiWorkspace.pickDirectory()
       if (!p) return
       const err = memberError(form.members, p)
       if (err) { patchForm({ notice: tt(err.key, err.values), noticeErr: true }); return }
