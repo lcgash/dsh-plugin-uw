@@ -1,7 +1,7 @@
 {
   "name": "dsh-union-workspace",
   "description": "Union workspaces for the dsh web GUI: merge multiple directories into one session (primary + members), persist them under ~/.dsh/union-workspaces.json, apply a permission preset per union, browse member files in a right-side panel, and manage everything from a settings section and the /uw command. Hot-pluggable — mounted via ~/.dsh/cordis.patch.yml + a profile node_modules link, no dsh source changes.",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "type": "module",
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
@@ -50,9 +50,9 @@
   "peerDependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "@deepseek-ai/dsh-tools": ">=0.1.7-rc.2 <0.3.0-0",
-    "@deepseek-ai/dsh-llm": ">=0.1.7-rc.2 <0.3.0-0",
-    "@deepseek-ai/dsh-session": ">=0.1.7-rc.2 <0.3.0-0"
+    "@deepseek-ai/dsh-tools": "^0.1.7-rc.2 || ^0.2.0-rc.2",
+    "@deepseek-ai/dsh-llm": "^0.1.7-rc.2 || ^0.2.0-rc.2",
+    "@deepseek-ai/dsh-session": "^0.1.7-rc.2 || ^0.2.0-rc.2"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "^4.0.4",
