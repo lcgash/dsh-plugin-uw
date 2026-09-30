@@ -160,20 +160,27 @@ export function buildUnionRoutes(deps: UnionRoutesDeps): WebRoute[] {
             // Persist the workspace id so subsequent lookups go by id.
             await store.setUnionWorkspace(union.id, ws.id)
           }
-          // Move the session: detach from its original workspace (if any) and
-          // attach to the union workspace, so other sessions in the original
-          // workspace are unaffected.
+          // Re-home the session into the union workspace so the sidebar groups
+          // it there. Workspace.attachSession accepts a new id only when the
+          // session's header cwd resolves to an existing directory equal to the
+          // workspace path, so this succeeds for a session born in the union
+          // workspace (its synthetic path is a real directory) and rejects for
+          // a session adopted from somewhere else. Detach only after a
+          // successful attach: the other order drops the session from its own
+          // workspace first and then fails to re-home it, leaving it in none.
           const sessionId = typeof body?.sessionId === 'string' ? body.sessionId : ''
           if (sessionId) {
-            // Detach from any existing workspace
-            for (const w of workspaceRegistry.list()) {
-              if (w.id !== ws.id && (w.sessionIds as readonly string[]).includes(sessionId)) {
-                try { await w.detachSession(sessionId as never) } catch { /* ignore */ }
-                break
+            let attached = false
+            try { await ws.attachSession(sessionId as never); attached = true } catch { /* cwd mismatch */ }
+            if (attached) {
+              // Detach from any other workspace so the union grouping wins.
+              for (const w of workspaceRegistry.list()) {
+                if (w.id !== ws.id && (w.sessionIds as readonly string[]).includes(sessionId)) {
+                  try { await w.detachSession(sessionId as never) } catch { /* ignore */ }
+                  break
+                }
               }
             }
-            // Attach to the union workspace
-            try { await ws.attachSession(sessionId as never) } catch { /* ignore if already attached or cwd mismatch */ }
             // Mark the session so the client-side UI can show the file panel
             store.mark(sessionId, union.id)
           }
